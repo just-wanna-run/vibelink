@@ -34,6 +34,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async ({ email, phone, password, rememberMe }) => {
     set({ isLoading: true });
     try {
+      // Save credentials if rememberMe
+      if (rememberMe) {
+        localStorage.setItem('vibelink_saved_email', email || '');
+        localStorage.setItem('vibelink_saved_phone', phone || '');
+        localStorage.setItem('vibelink_saved_password', password);
+      }
+
       // Detect device type roughly
       const deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
       const deviceName = deviceType === 'mobile' ? '手机' : '电脑';
@@ -117,6 +124,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         deviceType,
         encryptedPrivateKey: encryptedKey || undefined,
       });
+
+      // Save credentials on register too
+      localStorage.setItem('vibelink_saved_email', email || '');
+      localStorage.setItem('vibelink_saved_phone', phone || '');
+      localStorage.setItem('vibelink_saved_password', password);
 
       setStoredToken(data.token, true); // auto-remember on register
       set({
@@ -202,6 +214,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     clearStoredToken();
     clearLocalKey();
     setEncryptionKey(null);
+    // Don't clear saved credentials on logout — user might want to log back in
     set({ user: null, token: null });
   },
 
