@@ -15,10 +15,10 @@ export function getEncryptionKey(): CryptoKey | null {
 
 export async function encryptContent(plaintext: string): Promise<{ content: string; iv: string }> {
   if (!aesKey) {
-    // No encryption key — send as plaintext (backward compatible)
     return { content: plaintext, iv: '' };
   }
-  return encryptMessage(aesKey, plaintext);
+  const result = await encryptMessage(aesKey, plaintext);
+  return { content: result.ciphertext, iv: result.iv };
 }
 
 export async function decryptContent(ciphertext: string, iv: string): Promise<string> {

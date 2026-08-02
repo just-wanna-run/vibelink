@@ -125,7 +125,7 @@ export function initWebRTCReceiver() {
     // Auto-accept for same-account transfers
     const pc = new RTCPeerConnection(rtcConfig);
 
-    const chunks: Uint8Array[] = [];
+    const chunks: BlobPart[] = [];
     let receivedSize = 0;
     let metadata: any = null;
 

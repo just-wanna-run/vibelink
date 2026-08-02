@@ -32,8 +32,8 @@ interface ChatState {
   addMessage: (msg: Message) => void;
   sendText: (text: string) => Promise<void>;
   loadHistory: () => Promise<void>;
+  pollNewMessages: () => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
-  handleWsMessage: (data: any) => void;
 }
 
 // Generate a persistent local device identifier
@@ -133,22 +133,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  handleWsMessage: (data: any) => {
-    if (data.type === 'new_message') {
-      const msg = data.message;
-      // Skip if we already added this message via API response
-      if (sentMessageIds.has(msg.client_message_id)) return;
-      set((s) => {
-        // Double-check dedup
-        if (s.messages.some((m) => m.client_message_id === msg.client_message_id)) {
-          return s;
-        }
-        return { messages: [...s.messages, msg] };
-      });
-    } else if (data.type === 'message_deleted') {
-      set((s) => ({
-        messages: s.messages.filter((m) => m.id !== data.messageId),
-      }));
+  pollNewMessages: async () => {
+    const { messages } = get();
+    const after = messages.length > 0
+      ? Math.max(...messages.map((m) => m.created_at))
+      : 0;
+
+    try {
+      const { data } = await api.get('/messages/poll', { params: { after } });
+      const newMessages: Message[] = data.messages || [];
+      if (newMessages.length > 0) {
+        set((s) => {
+          const existing = new Set(s.messages.map((m) => m.client_message_id));
+          const toAdd = newMessages.filter((m) => !existing.has(m.client_message_id) && !sentMessageIds.has(m.client_message_id));
+          if (toAdd.length === 0) return s;
+          return { messages: [...s.messages, ...toAdd] };
+        });
+      }
+    } catch {
+      // Silently ignore poll errors
     }
   },
 }));

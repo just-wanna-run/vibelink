@@ -20,7 +20,11 @@
       "Bash(git branch *)",
       "Bash(git push *)",
       "Bash(flyctl version *)",
-      "Bash(npx flyctl *)"
+      "Bash(npx flyctl *)",
+      "Bash(curl -sL \"https://api.github.com/repos/superfly/flyctl/releases/latest\")",
+      "Bash(cloudflared --version)",
+      "Bash(curl -L -o 'C:\\\\Users\\\\李晓东/flyctl.exe' https://github.com/superfly/flyctl/releases/download/v0.3.92/flyctl_windows_amd64.exe)",
+      "Read(//c/Users/李晓东/**)"
     ]
   }
 }

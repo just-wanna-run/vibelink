@@ -99,6 +99,26 @@ router.get('/history', authMiddleware, (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /api/messages/poll?after=<timestamp> — poll for new messages (replaces WebSocket)
+router.get('/poll', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const after = parseInt(req.query.after as string) || 0;
+
+    const messages = getDb().prepare(`
+      SELECT * FROM messages
+      WHERE user_id = ? AND created_at > ?
+      ORDER BY created_at ASC
+      LIMIT 20
+    `).all(userId, after);
+
+    return res.json({ messages });
+  } catch (err: any) {
+    console.error('Poll error:', err);
+    return res.status(500).json({ error: '获取消息失败' });
+  }
+});
+
 // DELETE /api/messages/:id — delete a message
 router.delete('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
   try {

@@ -1,6 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { wsClient } from '../services/ws';
 
 interface Props {
   children: React.ReactNode;
@@ -11,7 +10,6 @@ export default function Layout({ children }: Props) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    wsClient.disconnect();
     await logout();
     navigate('/login', { replace: true });
   };

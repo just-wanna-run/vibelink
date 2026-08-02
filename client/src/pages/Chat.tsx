@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
-import { wsClient } from '../services/ws';
 import { initWebRTCReceiver, sendFileViaWebRTC } from '../services/webrtc';
 import api from '../services/api';
 import Layout from '../components/Layout';
@@ -11,25 +10,25 @@ import InputArea from '../components/InputArea';
 export default function Chat() {
   const { user } = useAuthStore();
   const {
-    messages, isLoadingHistory, hasMore,
-    sendText, loadHistory, deleteMessage, handleWsMessage, addMessage,
+    messages, isLoadingHistory, hasMore, myDeviceId,
+    sendText, loadHistory, deleteMessage, pollNewMessages, addMessage,
   } = useChatStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Connect WebSocket & WebRTC receiver
+  // Polling for new messages (2s interval, replaces WebSocket)
   useEffect(() => {
-    wsClient.connect();
-    initWebRTCReceiver(); // listen for incoming P2P file transfers
-    wsClient.on('new_message', handleWsMessage);
-    wsClient.on('message_deleted', handleWsMessage);
+    const interval = setInterval(() => {
+      pollNewMessages();
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [pollNewMessages]);
 
-    return () => {
-      wsClient.off('new_message', handleWsMessage);
-      wsClient.off('message_deleted', handleWsMessage);
-    };
-  }, [handleWsMessage]);
+  // WebRTC receiver for P2P large files
+  useEffect(() => {
+    initWebRTCReceiver();
+  }, []);
 
   // Track previous message count for auto-scroll detection
   const prevCountRef = useRef(messages.length);
