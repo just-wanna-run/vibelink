@@ -35,11 +35,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       // Save credentials if rememberMe
-      if (rememberMe) {
-        localStorage.setItem('vibelink_saved_email', email || '');
-        localStorage.setItem('vibelink_saved_phone', phone || '');
-        localStorage.setItem('vibelink_saved_password', password);
-      }
+      // Always save credentials for pre-fill (regardless of rememberMe)
+      localStorage.setItem('vibelink_saved_email', email || '');
+      localStorage.setItem('vibelink_saved_phone', phone || '');
 
       // Detect device type roughly
       const deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
@@ -229,11 +227,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const { data } = await api.post('/auth/verify-token', { token });
 
-      // Try to load encryption key from local storage (auto-login, no password)
-      const localKey = await loadKeyLocally();
-      if (localKey) {
-        setEncryptionKey(localKey);
-      }
+      // Try to load encryption key from local storage
+      try {
+        const localKey = await loadKeyLocally();
+        if (localKey) setEncryptionKey(localKey);
+      } catch {}
 
       setStoredToken(data.token, true);
       set({
@@ -248,9 +246,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isCheckingToken: false,
       });
       return true;
-    } catch {
-      clearStoredToken();
-      set({ isCheckingToken: false, user: null, token: null });
+    } catch (err: any) {
+      // Only clear token on auth error (401), keep it on network errors
+      if (err?.response?.status === 401) {
+        clearStoredToken();
+        set({ isCheckingToken: false, user: null, token: null });
+      } else {
+        // Network error — keep token, try again next time
+        set({ isCheckingToken: false });
+        // Still allow the user to manually log in
+        if (get().user === null) {
+          // No previous user, so stay on login page
+        }
+      }
       return false;
     }
   },
