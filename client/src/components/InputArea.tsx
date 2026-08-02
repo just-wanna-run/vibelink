@@ -3,13 +3,18 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 interface Props {
   onSendText: (text: string) => void;
   onSendFiles: (files: FileList | File[]) => void;
+  selectMode?: boolean;
+  selectedCount?: number;
+  onToggleSelectMode?: () => void;
+  onBatchDelete?: () => void;
+  hasMessages?: boolean;
 }
 
 const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 400;
 const DEFAULT_HEIGHT = 100;
 
-export default function InputArea({ onSendText, onSendFiles }: Props) {
+export default function InputArea({ onSendText, onSendFiles, selectMode, selectedCount, onToggleSelectMode, onBatchDelete, hasMessages }: Props) {
   const [text, setText] = useState('');
   const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,26 +101,38 @@ export default function InputArea({ onSendText, onSendFiles }: Props) {
         onMouseLeave={(e) => { if (!isDragging.current) e.currentTarget.style.background = 'transparent'; }}
       />
 
-      {/* Toolbar — single attach button */}
+      {/* Toolbar */}
       <div style={{
-        display: 'flex', gap: 4, padding: '4px 12px 0',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '4px 12px 0',
       }}>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          title="发送文件或图片（可多选）"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: 5, borderRadius: 4, lineHeight: 0,
-            color: 'var(--text-secondary)',
-            transition: 'background 0.15s, color 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-          </svg>
-        </button>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button onClick={() => fileInputRef.current?.click()} title="发送文件或图片（可多选）"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5, borderRadius: 4, lineHeight: 0, color: 'var(--text-secondary)', transition: 'background 0.15s, color 0.15s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Select / batch delete controls */}
+        {hasMessages && (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {selectMode ? (
+              <>
+                <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>取消</button>
+                <button onClick={onBatchDelete} disabled={!selectedCount}
+                  style={{ background: 'none', border: 'none', color: selectedCount ? 'var(--danger)' : 'var(--text-secondary)', cursor: selectedCount ? 'pointer' : 'default', fontSize: 12, fontWeight: selectedCount ? 600 : 400 }}>
+                  删除{selectedCount ? `(${selectedCount})` : ''}
+                </button>
+              </>
+            ) : (
+              <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>选择</button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Hidden file input — accepts images and all file types */}

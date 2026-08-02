@@ -212,20 +212,6 @@ export default function Chat() {
           </div>
         )}
 
-        {/* Batch delete toolbar */}
-        {messages.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 20px', gap: 8 }}>
-            {!selectMode ? (
-              <button onClick={() => setSelectMode(true)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>选择</button>
-            ) : (
-              <>
-                <button onClick={() => { setSelectMode(false); setSelected(new Set()); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>取消</button>
-                <button onClick={handleBatchDelete} disabled={selected.size === 0} style={{ background: 'none', border: 'none', color: selected.size > 0 ? 'var(--danger)' : 'var(--text-secondary)', cursor: selected.size > 0 ? 'pointer' : 'default', fontSize: 12, fontWeight: selected.size > 0 ? 600 : 400 }}>删除({selected.size})</button>
-              </>
-            )}
-          </div>
-        )}
-
         {messages.length === 0 && !isLoadingHistory && (
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -274,6 +260,11 @@ export default function Chat() {
       <InputArea
         onSendText={sendText}
         onSendFiles={handleSendFiles}
+        selectMode={selectMode}
+        selectedCount={selected.size}
+        onToggleSelectMode={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
+        onBatchDelete={handleBatchDelete}
+        hasMessages={messages.length > 0}
       />
       </div>
     </Layout>
