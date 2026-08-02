@@ -24,11 +24,6 @@ export default function Chat() {
     return () => clearInterval(interval);
   }, [pollNewMessages]);
 
-  // WebRTC receiver for P2P large files
-  useEffect(() => {
-    initWebRTCReceiver();
-  }, []);
-
   // Track previous message count for auto-scroll detection
   const prevCountRef = useRef(messages.length);
 
