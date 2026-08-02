@@ -162,11 +162,12 @@ router.post('/verify-token', (req: Request, res: Response) => {
   }
 });
 
-// ---- In-memory verification code store (production: use SMS service) ----
+// ---- In-memory verification code store ----
 const codeStore = new Map<string, { code: string; expires: number }>();
+import { sendSMS } from '../services/sms';
 
 // POST /api/auth/send-code
-router.post('/send-code', (req: Request, res: Response) => {
+router.post('/send-code', async (req: Request, res: Response) => {
   try {
     const { phone } = req.body;
     if (!phone) {
@@ -175,13 +176,15 @@ router.post('/send-code', (req: Request, res: Response) => {
 
     // Generate 6-digit code
     const code = String(Math.floor(100000 + Math.random() * 900000));
-    codeStore.set(phone, { code, expires: Date.now() + 5 * 60 * 1000 }); // 5 min
+    codeStore.set(phone, { code, expires: Date.now() + 5 * 60 * 1000 });
 
-    // In production: send via SMS service (Alibaba Cloud / Tencent Cloud)
-    // For dev: log to console AND return in response
-    console.log(`[SMS] Verification code for ${phone}: ${code}`);
+    // Send via SMS (falls back to dev mode if not configured)
+    const result = await sendSMS(phone, code);
 
-    return res.json({ message: '验证码已发送', code });
+    return res.json({
+      message: result.dev ? '验证码已发送（开发模式）' : '验证码已发送',
+      code: result.dev ? code : undefined,
+    });
   } catch (err: any) {
     console.error('Send code error:', err);
     return res.status(500).json({ error: '发送失败' });
