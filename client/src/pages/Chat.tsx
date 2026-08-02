@@ -98,23 +98,32 @@ export default function Chat() {
     };
     addMessage(optimistic);
 
-    // Upload via FormData (include base64 preview for images)
-    const formData = new FormData();
-    formData.append('type', isImage ? 'image' : 'file');
-    formData.append('clientMessageId', clientId);
-    formData.append('file', file);
-    if (localPreview) {
-      formData.append('content', localPreview);
-    }
-
     try {
-      const { data } = await api.post('/messages/send', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 120000, // 2 min for file uploads
-      });
-      if (data.message && !data.duplicate) {
-        // Replace optimistic with server message, keep local preview
-        setOptimisticConfirmed(clientId, { ...data.message, content: localPreview || data.message.content });
+      let responseData: any;
+
+      if (isImage && localPreview) {
+        // Images: send as JSON (base64 only, one request, smaller)
+        const res = await api.post('/messages/send', {
+          type: 'image',
+          content: localPreview,
+          clientMessageId: clientId,
+        }, { timeout: 60000 });
+        responseData = res.data;
+      } else {
+        // Documents/files: send as multipart form
+        const fd = new FormData();
+        fd.append('type', 'file');
+        fd.append('clientMessageId', clientId);
+        fd.append('file', file);
+        const res = await api.post('/messages/send', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000,
+        });
+        responseData = res.data;
+      }
+
+      if (responseData.message && !responseData.duplicate) {
+        setOptimisticConfirmed(clientId, { ...responseData.message, content: localPreview || responseData.message.content });
       }
     } catch (err: any) {
       console.error('[SendFile] Failed:', err);
