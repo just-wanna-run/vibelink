@@ -1,29 +1,11 @@
-import Dysmsapi20170525, * as $Dysmsapi20170525 from '@alicloud/dysmsapi20170525';
-import * as $OpenApi from '@alicloud/openapi-client';
+// YunPian SMS Service — simple HTTP API, no SDK needed
+// Sign up at https://www.yunpian.com to get your API key
+// Docs: https://www.yunpian.com/official/document/sms/zh_cn/domestic_single_send
 
-// SMS configuration — set via environment variables in production
-const config = {
-  accessKeyId: process.env.SMS_ACCESS_KEY_ID || '',
-  accessKeySecret: process.env.SMS_ACCESS_KEY_SECRET || '',
-  signName: process.env.SMS_SIGN_NAME || 'VibeLink',
-  templateCode: process.env.SMS_TEMPLATE_CODE || 'SMS_123456789',
-};
+const API_KEY = process.env.SMS_API_KEY || '';
+const API_URL = 'https://sms.yunpian.com/v2/sms/single_send.json';
 
-let client: Dysmsapi20170525 | null = null;
-
-function getClient(): Dysmsapi20170525 {
-  if (!client) {
-    const openApiConfig = new $OpenApi.Config({
-      accessKeyId: config.accessKeyId,
-      accessKeySecret: config.accessKeySecret,
-      endpoint: 'dysmsapi.aliyuncs.com',
-    });
-    client = new Dysmsapi20170525(openApiConfig);
-  }
-  return client;
-}
-
-const isConfigured = () => !!(config.accessKeyId && config.accessKeySecret);
+const isConfigured = () => !!API_KEY;
 
 export async function sendSMS(phone: string, code: string): Promise<{ success: boolean; dev: boolean }> {
   // If SMS not configured, return code for dev mode
@@ -33,21 +15,32 @@ export async function sendSMS(phone: string, code: string): Promise<{ success: b
   }
 
   try {
-    const sendReq = new $Dysmsapi20170525.SendSmsRequest({
-      phoneNumbers: phone,
-      signName: config.signName,
-      templateCode: config.templateCode,
-      templateParam: JSON.stringify({ code }),
+    const text = `【VibeLink】您的验证码是${code}。如非本人操作，请忽略本短信。`;
+
+    const formData = new URLSearchParams();
+    formData.append('apikey', API_KEY);
+    formData.append('mobile', phone);
+    formData.append('text', text);
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString(),
     });
 
-    const response = await getClient().sendSms(sendReq);
-    const bodyCode = response.body?.code || '';
-    const bodyMessage = response.body?.message || '';
-    console.log(`[SMS] Sent to ${phone}, code: ${bodyCode}, message: ${bodyMessage}`);
-    return { success: bodyCode === 'OK', dev: false };
+    const result: any = await response.json();
+    console.log(`[SMS] Sent to ${phone}, code: ${result.code}, msg: ${result.msg}`);
+
+    if (result.code === 0) {
+      return { success: true, dev: false };
+    }
+
+    console.error(`[SMS] YunPian error: ${result.msg} (code: ${result.code})`);
+    // Fallback to dev mode on API error
+    console.log(`[SMS DEV] Verification code for ${phone}: ${code}`);
+    return { success: false, dev: true };
   } catch (err: any) {
     console.error('[SMS] Failed:', err.message);
-    // Fallback to dev mode
     console.log(`[SMS DEV] Verification code for ${phone}: ${code}`);
     return { success: false, dev: true };
   }
