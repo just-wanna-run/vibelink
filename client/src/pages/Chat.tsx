@@ -98,11 +98,14 @@ export default function Chat() {
     };
     addMessage(optimistic);
 
-    // Upload via FormData (file only, no base64 doubling)
+    // Upload via FormData (include base64 preview for images)
     const formData = new FormData();
     formData.append('type', isImage ? 'image' : 'file');
     formData.append('clientMessageId', clientId);
     formData.append('file', file);
+    if (localPreview) {
+      formData.append('content', localPreview);
+    }
 
     try {
       const { data } = await api.post('/messages/send', formData, {
