@@ -122,6 +122,33 @@ router.get('/poll', authMiddleware, (req: AuthRequest, res: Response) => {
   }
 });
 
+// POST /api/messages/batch-delete — delete selected messages
+router.post('/batch-delete', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: '请选择要删除的消息' });
+    }
+
+    for (const id of ids) {
+      const msg = getDb().prepare('SELECT file_path FROM messages WHERE id = ? AND user_id = ?').get(id, userId) as any;
+      if (msg?.file_path) {
+        const fp = path.join(UPLOAD_DIR, msg.file_path);
+        if (fs.existsSync(fp)) fs.unlinkSync(fp);
+      }
+    }
+
+    const placeholders = ids.map(() => '?').join(',');
+    getDb().prepare(`DELETE FROM messages WHERE user_id = ? AND id IN (${placeholders})`).run(userId, ...ids);
+    saveDb();
+
+    return res.json({ message: '已删除' });
+  } catch (err: any) {
+    return res.status(500).json({ error: '删除失败' });
+  }
+});
+
 // DELETE /api/messages/all — clear all messages for user
 router.delete('/all', authMiddleware, (req: AuthRequest, res: Response) => {
   try {

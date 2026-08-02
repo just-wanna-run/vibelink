@@ -8,6 +8,27 @@ export default function History() {
   const { messages, loadHistory, isLoadingHistory, hasMore, deleteMessage } = useChatStore();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'text' | 'image' | 'file'>('all');
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchDelete = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selected.size} 条记录吗？`)) return;
+    try {
+      await api.post('/messages/batch-delete', { ids: [...selected] });
+      useChatStore.setState((s) => ({ messages: s.messages.filter((m) => !selected.has(m.id)) }));
+      setSelected(new Set());
+      setSelectMode(false);
+    } catch { alert('删除失败'); }
+  };
 
   const handleClearAll = async () => {
     if (!confirm('确定要删除所有传输记录吗？此操作不可撤销。')) return;
@@ -49,11 +70,17 @@ export default function History() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <h1 style={{ fontSize: 18, fontWeight: 600 }}>传输记录</h1>
-            {messages.length > 0 && (
-              <button onClick={handleClearAll} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: 12, color: 'var(--danger)', borderColor: 'var(--danger)' }}>
-                清空全部
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {messages.length > 0 && !selectMode && (
+                <button onClick={() => setSelectMode(true)} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: 12 }}>选择</button>
+              )}
+              {selectMode && (
+                <>
+                  <button onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: 12 }}>取消</button>
+                  <button onClick={handleBatchDelete} disabled={selected.size === 0} className="btn btn-danger" style={{ padding: '6px 14px', fontSize: 12 }}>删除({selected.size})</button>
+                </>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
@@ -101,14 +128,23 @@ export default function History() {
             const prev = i > 0 ? filtered[i - 1] : null;
             const prevDate = prev ? new Date(prev.created_at * 1000).toDateString() : '';
             const thisDate = new Date(msg.created_at * 1000).toDateString();
+            const isSelected = selected.has(msg.id);
             return (
-              <div key={msg.id || msg.client_message_id}>
+              <div key={msg.id || msg.client_message_id} style={{ position: 'relative' }}>
                 {prevDate !== thisDate && (
                   <div style={{ textAlign: 'center', padding: '10px 0 6px', fontSize: 12, color: 'var(--text-secondary)' }}>
                     {formatDateHeader(msg.created_at)}
                   </div>
                 )}
-                <MessageBubble message={msg} onDelete={deleteMessage} />
+                {selectMode && (
+                  <div style={{ position: 'absolute', left: 8, top: '50%', zIndex: 2, transform: 'translateY(-50%)' }}>
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)}
+                      style={{ width: 20, height: 20, accentColor: 'var(--primary)', cursor: 'pointer' }} />
+                  </div>
+                )}
+                <div style={{ opacity: selectMode ? 0.7 : 1, pointerEvents: selectMode ? 'none' : 'auto' }}>
+                  <MessageBubble message={msg} onDelete={deleteMessage} />
+                </div>
               </div>
             );
           })}
