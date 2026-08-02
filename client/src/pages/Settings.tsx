@@ -79,16 +79,16 @@ export default function Settings() {
           {showFeedback && <FeedbackSection />}
         </div>
 
-        {/* Support — with QR codes */}
-        <SupportSection />
-
         {/* About */}
-        <div className="card">
+        <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>关于 VibeLink</h2>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>VibeLink 是一个轻量级的网页版文件传输助手。所有内容端到端加密，支持文字、图片、文件传输，最大支持 1GB 文件。</p>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>Version 1.0.0 · 浏览器打开即用，无需安装</p>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>🔒 端到端加密 · 🌐 联网传输 · 📱💻 跨平台</p>
         </div>
+
+        {/* Support — at bottom */}
+        <SupportSection />
       </div>
     </Layout>
   );
