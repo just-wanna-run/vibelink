@@ -16,7 +16,7 @@ export default function Login() {
 
   const [email, setEmail] = useState(localStorage.getItem('vibelink_saved_email') || '');
   const [phone, setPhone] = useState(localStorage.getItem('vibelink_saved_phone') || '');
-  const [password, setPassword] = useState(localStorage.getItem('vibelink_saved_password') || '');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
