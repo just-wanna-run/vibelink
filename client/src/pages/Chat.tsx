@@ -165,6 +165,7 @@ export default function Chat() {
       <div style={{
         display: 'flex', flexDirection: 'column', height: '100%',
         maxWidth: 800, margin: '0 auto', width: '100%',
+        boxSizing: 'border-box',
       }}>
 
       {/* Messages */}

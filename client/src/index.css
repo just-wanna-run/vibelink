@@ -281,16 +281,42 @@ a:hover { text-decoration: underline; }
   border-color: #333840;
 }
 
-[data-theme="dark"] .sidebar-logo,
+[data-theme="dark"] .sidebar-logo {
+  color: var(--primary);
+}
+
 [data-theme="dark"] input,
 [data-theme="dark"] textarea,
 [data-theme="dark"] select {
   color: var(--text);
+  background: #1e2128;
+  border-color: #333840;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus {
+  background: #1e2128;
+  border-color: var(--primary);
 }
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-  color: #666;
+  color: #555;
+}
+
+[data-theme="dark"] .card {
+  background: #252830;
+}
+
+[data-theme="dark"] header,
+[data-theme="dark"] .sidebar {
+  background: #252830;
+  border-color: #333840;
+}
+
+[data-theme="dark"] .mobile-nav {
+  background: #252830;
+  border-color: #333840;
 }
 
 /* ===== Responsive ===== */
