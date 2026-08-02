@@ -15,7 +15,12 @@
       "Bash(curl -s -X POST http://localhost:3001/api/auth/send-code -H 'Content-Type: application/json' -d '{\"phone\":\"13800138000\"}')",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(flyctl version *)",
+      "Bash(npx flyctl *)"
     ]
   }
 }
