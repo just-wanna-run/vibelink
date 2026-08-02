@@ -17,18 +17,28 @@ export async function sendSMS(phone: string, code: string): Promise<{ success: b
   try {
     const text = `【VibeLink】您的验证码是${code}。如非本人操作，请忽略本短信。`;
 
-    const formData = new URLSearchParams();
-    formData.append('apikey', API_KEY);
-    formData.append('mobile', phone);
-    formData.append('text', text);
+    const https = require('https');
+    const { URL } = require('url');
+    const body = `apikey=${encodeURIComponent(API_KEY)}&mobile=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`;
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString(),
+    const result: any = await new Promise((resolve, reject) => {
+      const url = new URL(API_URL);
+      const req = https.request({
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) },
+      }, (res: any) => {
+        let data = '';
+        res.on('data', (chunk: string) => data += chunk);
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)); } catch { reject(new Error('Invalid JSON response')); }
+        });
+      });
+      req.on('error', reject);
+      req.write(body);
+      req.end();
     });
-
-    const result: any = await response.json();
     console.log(`[SMS] Sent to ${phone}, code: ${result.code}, msg: ${result.msg}`);
 
     if (result.code === 0) {
