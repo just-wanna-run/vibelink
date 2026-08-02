@@ -79,13 +79,8 @@ export default function Settings() {
           {showFeedback && <FeedbackSection />}
         </div>
 
-        {/* Support — minimal */}
-        <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '16px 20px' }}>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>🧧 喜欢 VibeLink？给作者发个红包吧</div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', opacity: 0.7 }}>
-            保存下方二维码 → 打开微信/支付宝 → 扫一扫 → 选择相册中的二维码
-          </div>
-        </div>
+        {/* Support — with QR codes */}
+        <SupportSection />
 
         {/* About */}
         <div className="card">
@@ -96,6 +91,37 @@ export default function Settings() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+function SupportSection() {
+  const [preview, setPreview] = useState<string | null>(null);
+  return (
+    <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '14px 16px' }}>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>
+        ☕ 这杯咖啡我请了，代码你继续写
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
+        {[
+          { src: '/收款码/微信.jpg', label: '微信' },
+          { src: '/收款码/支付宝.jpg', label: '支付宝' },
+        ].map((item) => (
+          <div key={item.label} style={{ cursor: 'pointer', textAlign: 'center' }}
+            onClick={() => setPreview(item.src)}>
+            <img src={item.src} alt={item.label} style={{ width: 100, height: 100, borderRadius: 8, border: '1px solid var(--border)', objectFit: 'cover' }} />
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>{item.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8, opacity: 0.6 }}>
+        截个屏 → 打开微信/支付宝扫一扫 → 相册选图
+      </div>
+      {preview && (
+        <div onClick={() => setPreview(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, cursor: 'pointer' }}>
+          <img src={preview} alt="" style={{ maxWidth: '80vw', maxHeight: '80vh', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }} />
+        </div>
+      )}
+    </div>
   );
 }
 
