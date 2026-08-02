@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface Props {
   onSendText: (text: string) => void;
-  onSendImage: (file: File) => void;
   onSendFile: (file: File) => void;
 }
 
@@ -10,11 +9,10 @@ const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 400;
 const DEFAULT_HEIGHT = 100;
 
-export default function InputArea({ onSendText, onSendImage, onSendFile }: Props) {
+export default function InputArea({ onSendText, onSendFile }: Props) {
   const [text, setText] = useState('');
   const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDragging = useRef(false);
   const startY = useRef(0);
@@ -44,11 +42,11 @@ export default function InputArea({ onSendText, onSendImage, onSendFile }: Props
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) onSendImage(file);
+        if (file) onSendFile(file);
         return;
       }
     }
-  }, [onSendImage]);
+  }, [onSendFile]);
 
   // ---- Resize handle (top border drag) ----
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -97,31 +95,13 @@ export default function InputArea({ onSendText, onSendImage, onSendFile }: Props
         onMouseLeave={(e) => { if (!isDragging.current) e.currentTarget.style.background = 'transparent'; }}
       />
 
-      {/* Toolbar — simple small icons */}
+      {/* Toolbar — single file button (supports images, documents, all types) */}
       <div style={{
         display: 'flex', gap: 4, padding: '4px 12px 0',
       }}>
         <button
-          onClick={() => imageInputRef.current?.click()}
-          title="图片"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: 5, borderRadius: 4, lineHeight: 0,
-            color: 'var(--text-secondary)',
-            transition: 'background 0.15s, color 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </button>
-        <button
           onClick={() => fileInputRef.current?.click()}
-          title="文件"
+          title="发送文件/图片"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 5, borderRadius: 4, lineHeight: 0,
@@ -137,10 +117,8 @@ export default function InputArea({ onSendText, onSendImage, onSendFile }: Props
         </button>
       </div>
 
-      {/* Hidden file inputs */}
-      <input ref={imageInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) onSendImage(f); e.target.value = ''; }} />
-      <input ref={fileInputRef} type="file" style={{ display: 'none' }}
+      {/* Hidden file input — accepts images and all file types */}
+      <input ref={fileInputRef} type="file" accept="image/*,*/*" style={{ display: 'none' }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onSendFile(f); e.target.value = ''; }} />
 
       {/* Textarea */}

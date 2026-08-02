@@ -69,37 +69,20 @@ export default function Chat() {
     }
   };
 
-  // Send image as base64
-  const handleSendImage = async (file: File) => {
-    // For now, read as base64 data URL and send as content
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result as string;
-
-      // Upload via FormData to preserve in file storage
-      const formData = new FormData();
-      formData.append('type', 'image');
-      formData.append('clientMessageId', `img_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`);
-      formData.append('content', base64);
-      formData.append('file', file);
-
-      try {
-        const { data } = await api.post('/messages/send', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        if (!data.duplicate) {
-          addMessage(data.message);
-        }
-      } catch {
-        // silently fail, message was addable optimistically but we skip that for images
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Send file — small files via HTTP, large files (>10MB) via WebRTC P2P
+  // Send file/image — small files via HTTP, large files (>10MB) via WebRTC
   const handleSendFile = async (file: File) => {
-    const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024; // 10MB
+    const isImage = file.type.startsWith('image/');
+    const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
+
+    // For images, read base64 for preview, then upload
+    let base64Content: string | undefined;
+    if (isImage && file.size < 5 * 1024 * 1024) {
+      base64Content = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
 
     if (file.size > LARGE_FILE_THRESHOLD) {
       // Use WebRTC P2P for large files
@@ -135,9 +118,12 @@ export default function Chat() {
 
     // Small file: HTTP upload
     const formData = new FormData();
-    formData.append('type', 'file');
+    formData.append('type', isImage ? 'image' : 'file');
     formData.append('clientMessageId', `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`);
     formData.append('file', file);
+    if (base64Content) {
+      formData.append('content', base64Content);
+    }
 
     try {
       const { data } = await api.post('/messages/send', formData, {
@@ -249,7 +235,6 @@ export default function Chat() {
       {/* Input */}
       <InputArea
         onSendText={sendText}
-        onSendImage={handleSendImage}
         onSendFile={handleSendFile}
       />
       </div>

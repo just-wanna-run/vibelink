@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useChatStore } from '../store/chatStore';
 import Layout from '../components/Layout';
-import MessageBubble from '../components/MessageBubble';
+import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
 
 export default function History() {
   const { messages, loadHistory, isLoadingHistory, hasMore, deleteMessage } = useChatStore();
@@ -81,13 +81,21 @@ export default function History() {
             </div>
           )}
 
-          {filtered.map((msg) => (
-            <MessageBubble
-              key={msg.id || msg.client_message_id}
-              message={msg}
-              onDelete={deleteMessage}
-            />
-          ))}
+          {filtered.map((msg, i) => {
+            const prev = i > 0 ? filtered[i - 1] : null;
+            const prevDate = prev ? new Date(prev.created_at * 1000).toDateString() : '';
+            const thisDate = new Date(msg.created_at * 1000).toDateString();
+            return (
+              <div key={msg.id || msg.client_message_id}>
+                {prevDate !== thisDate && (
+                  <div style={{ textAlign: 'center', padding: '10px 0 6px', fontSize: 12, color: 'var(--text-secondary)' }}>
+                    {formatDateHeader(msg.created_at)}
+                  </div>
+                )}
+                <MessageBubble message={msg} onDelete={deleteMessage} />
+              </div>
+            );
+          })}
 
           {hasMore && (
             <div style={{ textAlign: 'center', padding: 16 }}>
