@@ -116,9 +116,11 @@ export default function Chat() {
         // Replace optimistic with server message, keep local preview
         setOptimisticConfirmed(clientId, { ...data.message, content: localPreview || data.message.content });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[SendFile] Failed:', err);
       setOptimisticFailed(clientId);
+      const msg = err.response?.data?.error || err.message || '发送失败，请重试';
+      alert(msg);
     }
   };
 

@@ -25,7 +25,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB
+  limits: {
+    fileSize: 1024 * 1024 * 1024, // 1GB file
+    fieldSize: 50 * 1024 * 1024,   // 50MB field (for base64 image content)
+  },
 });
 
 // POST /api/messages/send — send a text/image/file message
