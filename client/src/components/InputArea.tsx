@@ -2,14 +2,14 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface Props {
   onSendText: (text: string) => void;
-  onSendFile: (file: File) => void;
+  onSendFiles: (files: FileList | File[]) => void;
 }
 
 const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 400;
 const DEFAULT_HEIGHT = 100;
 
-export default function InputArea({ onSendText, onSendFile }: Props) {
+export default function InputArea({ onSendText, onSendFiles }: Props) {
   const [text, setText] = useState('');
   const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,15 +38,16 @@ export default function InputArea({ onSendText, onSendFile }: Props) {
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
+    const files: File[] = [];
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) onSendFile(file);
-        return;
+        if (file) files.push(file);
       }
     }
-  }, [onSendFile]);
+    if (files.length > 0) onSendFiles(files);
+  }, [onSendFiles]);
 
   // ---- Resize handle (top border drag) ----
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -118,8 +119,8 @@ export default function InputArea({ onSendText, onSendFile }: Props) {
       </div>
 
       {/* Hidden file input — accepts images and all file types */}
-      <input ref={fileInputRef} type="file" accept="image/*,*/*" style={{ display: 'none' }}
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) onSendFile(f); e.target.value = ''; }} />
+      <input ref={fileInputRef} type="file" accept="image/*,*/*" multiple style={{ display: 'none' }}
+        onChange={(e) => { if (e.target.files?.length) { onSendFiles(e.target.files); e.target.value = ''; } }} />
 
       {/* Textarea */}
       <div style={{ padding: '6px 12px' }}>

@@ -63,7 +63,14 @@ export default function Chat() {
     }
   };
 
-  // Send file/image via HTTP upload
+  // Send multiple files/images
+  const handleSendFiles = async (files: FileList | File[]) => {
+    for (const file of Array.from(files)) {
+      handleSendFile(file);
+    }
+  };
+
+  // Send single file/image via HTTP upload
   const handleSendFile = async (file: File) => {
     const isImage = file.type.startsWith('image/');
     const clientId = `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -232,7 +239,7 @@ export default function Chat() {
       {/* Input */}
       <InputArea
         onSendText={sendText}
-        onSendFile={handleSendFile}
+        onSendFiles={handleSendFiles}
       />
       </div>
     </Layout>
