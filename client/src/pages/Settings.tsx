@@ -207,6 +207,16 @@ function FeedbackForm() {
   const [msg, setMsg] = useState('');
   const [contact, setContact] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle');
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [showList, setShowList] = useState(false);
+
+  const loadFeedbacks = async () => {
+    try {
+      const { data } = await api.get('/feedback');
+      setFeedbacks(data.feedbacks || []);
+      setShowList(true);
+    } catch {}
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,11 +254,42 @@ function FeedbackForm() {
           <input type="text" value={contact} onChange={(e) => setContact(e.target.value)}
             placeholder="邮箱或微信，方便回复" />
         </div>
-        <button type="submit" className="btn btn-primary" disabled={!msg.trim() || status !== 'idle'}
-          style={{ padding: '8px 20px', fontSize: 13 }}>
-          {status === 'done' ? '✅ 已提交' : status === 'sending' ? '提交中...' : '提交反馈'}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="submit" className="btn btn-primary" disabled={!msg.trim() || status !== 'idle'}
+            style={{ padding: '8px 20px', fontSize: 13 }}>
+            {status === 'done' ? '✅ 已提交' : status === 'sending' ? '提交中...' : '提交反馈'}
+          </button>
+          <button type="button" onClick={loadFeedbacks} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: 13 }}>
+            查看反馈
+          </button>
+        </div>
       </form>
+
+      {showList && (
+        <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
+            反馈列表 ({feedbacks.length})
+          </h3>
+          {feedbacks.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>暂无反馈</p>
+          ) : (
+            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+              {feedbacks.map((fb: any) => (
+                <div key={fb.id} style={{
+                  padding: '10px 0', borderBottom: '1px solid var(--border)',
+                  fontSize: 13,
+                }}>
+                  <div style={{ color: 'var(--text)', marginBottom: 4 }}>{fb.message}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 11, display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{fb.contact || '匿名'}</span>
+                    <span>{new Date(fb.created_at * 1000).toLocaleString('zh-CN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

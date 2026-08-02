@@ -135,6 +135,14 @@ async function initDb(): Promise<DbWrapper> {
     created_at INTEGER DEFAULT (unixepoch())
   )`);
 
+  // Feedback table
+  sqlDb.run(`CREATE TABLE IF NOT EXISTS feedbacks (
+    id TEXT PRIMARY KEY,
+    message TEXT NOT NULL,
+    contact TEXT,
+    created_at INTEGER DEFAULT (unixepoch())
+  )`);
+
   // Create indexes (IF NOT EXISTS not supported in older SQLite; use try-catch style)
   try { sqlDb.run('CREATE INDEX idx_messages_user_time ON messages(user_id, created_at DESC)'); } catch {}
   try { sqlDb.run('CREATE INDEX idx_messages_client_id ON messages(client_message_id)'); } catch {}

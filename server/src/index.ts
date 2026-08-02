@@ -23,11 +23,29 @@ app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/files', fileRoutes);
 
-// ---- Feedback ----
+import { v4 as uuidv4 } from 'uuid';
+
+// ---- Feedback routes ----
 app.post('/api/feedback', (req, res) => {
-  const { message, contact } = req.body;
-  console.log(`[Feedback] Contact: ${contact || 'N/A'}, Message: ${message}`);
-  res.json({ ok: true });
+  try {
+    const { message, contact } = req.body;
+    if (!message) return res.status(400).json({ error: '请输入反馈内容' });
+    const { getDb, saveDb } = require('./db');
+    const db = getDb();
+    const id = uuidv4();
+    db.prepare('INSERT INTO feedbacks (id, message, contact) VALUES (?, ?, ?)').run(id, message, contact || null);
+    saveDb();
+    console.log(`[Feedback] ${contact || '匿名'}: ${message}`);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: '提交失败' }); }
+});
+
+app.get('/api/feedback', (_req, res) => {
+  try {
+    const { getDb } = require('./db');
+    const feedbacks = getDb().prepare('SELECT * FROM feedbacks ORDER BY created_at DESC LIMIT 50').all();
+    res.json({ feedbacks });
+  } catch (err) { res.status(500).json({ error: '获取失败' }); }
 });
 
 // Health check
