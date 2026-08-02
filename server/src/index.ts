@@ -23,6 +23,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/files', fileRoutes);
 
+// ---- Feedback ----
+app.post('/api/feedback', (req, res) => {
+  const { message, contact } = req.body;
+  console.log(`[Feedback] Contact: ${contact || 'N/A'}, Message: ${message}`);
+  res.json({ ok: true });
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });

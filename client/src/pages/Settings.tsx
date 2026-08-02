@@ -150,6 +150,40 @@ export default function Settings() {
           )}
         </div>
 
+        {/* Feedback */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <FeedbackForm />
+        </div>
+
+        {/* Support */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>支持作者</h2>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
+            如果 VibeLink 对你有帮助，欢迎请开发者喝杯咖啡 ☕
+          </p>
+          <div style={{
+            display: 'flex', gap: 16, flexWrap: 'wrap',
+            justifyContent: 'center', textAlign: 'center',
+          }}>
+            <div style={{
+              padding: 16, border: '1px solid var(--border)', borderRadius: 8,
+              background: 'var(--bg)', width: 140,
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 6 }}>💬</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>反馈建议</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>让 VibeLink 更好用</div>
+            </div>
+            <div style={{
+              padding: 16, border: '1px solid var(--border)', borderRadius: 8,
+              background: 'var(--bg)', width: 140,
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 6 }}>⭐</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>分享给朋友</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>告诉更多人</div>
+            </div>
+          </div>
+        </div>
+
         {/* About */}
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>关于 VibeLink</h2>
@@ -166,5 +200,55 @@ export default function Settings() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+function FeedbackForm() {
+  const [msg, setMsg] = useState('');
+  const [contact, setContact] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!msg.trim()) return;
+    setStatus('sending');
+    try {
+      await api.post('/feedback', { message: msg, contact: contact || undefined });
+      setStatus('done');
+      setMsg('');
+      setContact('');
+      setTimeout(() => setStatus('idle'), 2000);
+    } catch {
+      setStatus('idle');
+    }
+  };
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>反馈与建议</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="input-group">
+          <label>反馈内容</label>
+          <textarea value={msg} onChange={(e) => setMsg(e.target.value)}
+            placeholder="你的建议或遇到的问题..."
+            rows={3}
+            style={{
+              width: '100%', resize: 'vertical', padding: '10px 12px',
+              border: '1.5px solid var(--border)', borderRadius: 6,
+              fontSize: 14, fontFamily: 'inherit', outline: 'none',
+              minHeight: 60,
+            }} />
+        </div>
+        <div className="input-group">
+          <label>联系方式（选填）</label>
+          <input type="text" value={contact} onChange={(e) => setContact(e.target.value)}
+            placeholder="邮箱或微信，方便回复" />
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={!msg.trim() || status !== 'idle'}
+          style={{ padding: '8px 20px', fontSize: 13 }}>
+          {status === 'done' ? '✅ 已提交' : status === 'sending' ? '提交中...' : '提交反馈'}
+        </button>
+      </form>
+    </div>
   );
 }
