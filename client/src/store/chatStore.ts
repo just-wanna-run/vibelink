@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { encryptContent, decryptContent } from './encryptionStore';
 
 export interface Message {
   id: string;
@@ -73,9 +74,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     sentMessageIds.add(clientId);
 
     try {
+      // Encrypt content before sending
+      const { content: encContent, iv } = await encryptContent(text);
+
       const res = await api.post('/messages/send', {
         type: 'text',
-        content: text,
+        content: encContent,
+        iv: iv || undefined,
         clientMessageId: clientId,
       });
 
@@ -111,6 +116,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
 
       const historyMessages: Message[] = data.messages || [];
+      // Decrypt history messages
+      for (const msg of historyMessages) {
+        if (msg.content && msg.iv) {
+          msg.content = await decryptContent(msg.content, msg.iv);
+        }
+      }
 
       set((s) => ({
         messages: [...historyMessages, ...s.messages],
@@ -142,6 +153,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const { data } = await api.get('/messages/poll', { params: { after } });
       const newMessages: Message[] = data.messages || [];
+      // Decrypt incoming messages
+      for (const msg of newMessages) {
+        if (msg.content && msg.iv) {
+          msg.content = await decryptContent(msg.content, msg.iv);
+        }
+      }
       if (newMessages.length > 0) {
         set((s) => {
           const existing = new Set(s.messages.map((m) => m.client_message_id));
