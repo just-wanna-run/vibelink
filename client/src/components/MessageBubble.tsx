@@ -48,37 +48,36 @@ export default function MessageBubble({ message, onDelete }: Props) {
       alignItems: 'flex-end',
       marginBottom: 12,
     }}>
-      <div className="message-bubble message-sent">
+      {type === 'image' && content ? (
+        <div style={{ maxWidth: 240, borderRadius: 12, overflow: 'hidden' }}>
+          <img
+            src={content}
+            alt="图片"
+            style={{ width: '100%', display: 'block', cursor: 'pointer', borderRadius: 12 }}
+            loading="lazy"
+            onClick={() => setPreviewOpen(true)}
+          />
+          {previewOpen && (
+            <div
+              style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 9999, cursor: 'pointer',
+              }}
+              onClick={() => setPreviewOpen(false)}
+            >
+              <img
+                src={content}
+                alt="图片"
+                style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="message-bubble message-sent">
         {type === 'text' && (
           <span>{content}</span>
-        )}
-
-        {type === 'image' && content && (
-          <>
-            <img
-              src={content}
-              alt="图片"
-              style={{ maxWidth: 240, borderRadius: 8, display: 'block', cursor: 'pointer' }}
-              loading="lazy"
-              onClick={() => setPreviewOpen(true)}
-            />
-            {previewOpen && (
-              <div
-                style={{
-                  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  zIndex: 9999, cursor: 'pointer',
-                }}
-                onClick={() => setPreviewOpen(false)}
-              >
-                <img
-                  src={content}
-                  alt="图片"
-                  style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
-                />
-              </div>
-            )}
-          </>
         )}
 
         {(type === 'file') && (
@@ -113,6 +112,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
           <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 4 }}>发送中...</span>
         )}
       </div>
+      )}
 
       {/* Delete button */}
       {!pending && (
