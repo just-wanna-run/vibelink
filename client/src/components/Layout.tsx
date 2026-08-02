@@ -128,8 +128,7 @@ export default function Layout({ children }: Props) {
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
         {/* Desktop sidebar */}
         <aside className="sidebar desktop-only">
-          <div className="sidebar-logo">VibeLink</div>
-          <nav className="sidebar-nav">
+          <nav className="sidebar-nav" style={{ marginTop: 12 }}>
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
