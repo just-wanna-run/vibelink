@@ -13,6 +13,7 @@ export default function InputArea({ onSendText, onSendFiles }: Props) {
   const [text, setText] = useState('');
   const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDragging = useRef(false);
   const startY = useRef(0);
@@ -96,13 +97,31 @@ export default function InputArea({ onSendText, onSendFiles }: Props) {
         onMouseLeave={(e) => { if (!isDragging.current) e.currentTarget.style.background = 'transparent'; }}
       />
 
-      {/* Toolbar — single file button (supports images, documents, all types) */}
+      {/* Toolbar — image and file buttons */}
       <div style={{
         display: 'flex', gap: 4, padding: '4px 12px 0',
       }}>
         <button
           onClick={() => fileInputRef.current?.click()}
-          title="发送文件/图片"
+          title="发送图片（可多选）"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 5, borderRadius: 4, lineHeight: 0,
+            color: 'var(--text-secondary)',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+        <button
+          onClick={() => docInputRef.current?.click()}
+          title="发送文件（可多选）"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: 5, borderRadius: 4, lineHeight: 0,
@@ -119,7 +138,9 @@ export default function InputArea({ onSendText, onSendFiles }: Props) {
       </div>
 
       {/* Hidden file input — accepts images and all file types */}
-      <input ref={fileInputRef} type="file" accept="image/*,*/*" multiple style={{ display: 'none' }}
+      <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+        onChange={(e) => { if (e.target.files?.length) { onSendFiles(e.target.files); e.target.value = ''; } }} />
+      <input ref={docInputRef} type="file" accept="*/*" multiple style={{ display: 'none' }}
         onChange={(e) => { if (e.target.files?.length) { onSendFiles(e.target.files); e.target.value = ''; } }} />
 
       {/* Textarea */}
