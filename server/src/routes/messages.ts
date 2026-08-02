@@ -122,6 +122,24 @@ router.get('/poll', authMiddleware, (req: AuthRequest, res: Response) => {
   }
 });
 
+// DELETE /api/messages/all — clear all messages for user
+router.delete('/all', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    // Delete files from disk
+    const messages = getDb().prepare('SELECT file_path FROM messages WHERE user_id = ? AND file_path IS NOT NULL').all(userId) as any[];
+    for (const msg of messages) {
+      const fp = path.join(UPLOAD_DIR, msg.file_path);
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+    getDb().prepare('DELETE FROM messages WHERE user_id = ?').run(userId);
+    saveDb();
+    return res.json({ message: '已清空' });
+  } catch (err: any) {
+    return res.status(500).json({ error: '清空失败' });
+  }
+});
+
 // DELETE /api/messages/:id — delete a message
 router.delete('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
   try {

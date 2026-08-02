@@ -2,11 +2,20 @@ import { useEffect, useState, useMemo } from 'react';
 import { useChatStore } from '../store/chatStore';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
+import api from '../services/api';
 
 export default function History() {
   const { messages, loadHistory, isLoadingHistory, hasMore, deleteMessage } = useChatStore();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'text' | 'image' | 'file'>('all');
+
+  const handleClearAll = async () => {
+    if (!confirm('确定要删除所有传输记录吗？此操作不可撤销。')) return;
+    try {
+      await api.delete('/messages/all');
+      useChatStore.setState({ messages: [] });
+    } catch { alert('清空失败'); }
+  };
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -38,7 +47,14 @@ export default function History() {
           padding: '14px 20px', background: 'var(--white)',
           borderBottom: '1px solid var(--border)', flexShrink: 0,
         }}>
-          <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 10 }}>传输记录</h1>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <h1 style={{ fontSize: 18, fontWeight: 600 }}>传输记录</h1>
+            {messages.length > 0 && (
+              <button onClick={handleClearAll} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: 12, color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+                清空全部
+              </button>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               type="text"
