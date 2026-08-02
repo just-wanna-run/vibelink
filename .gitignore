@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+*.db
+server/data/
+server/uploads/
+.env
+.DS_Store
+Thumbs.db

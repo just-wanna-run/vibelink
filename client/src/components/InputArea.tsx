@@ -1,0 +1,189 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
+
+interface Props {
+  onSendText: (text: string) => void;
+  onSendImage: (file: File) => void;
+  onSendFile: (file: File) => void;
+}
+
+const MIN_HEIGHT = 80;
+const MAX_HEIGHT = 400;
+const DEFAULT_HEIGHT = 100;
+
+export default function InputArea({ onSendText, onSendImage, onSendFile }: Props) {
+  const [text, setText] = useState('');
+  const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isDragging = useRef(false);
+  const startY = useRef(0);
+  const startHeight = useRef(0);
+
+  const handleSend = useCallback(() => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    onSendText(trimmed);
+    setText('');
+    textareaRef.current?.focus();
+  }, [text, onSendText]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enter sends, Shift+Enter for new line
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  // Handle paste for images
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) onSendImage(file);
+        return;
+      }
+    }
+  }, [onSendImage]);
+
+  // ---- Resize handle (top border drag) ----
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    startY.current = e.clientY;
+    startHeight.current = areaHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const delta = startY.current - e.clientY; // drag up = increase height
+      const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight.current + delta));
+      setAreaHeight(newHeight);
+    };
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  return (
+    <div style={{
+      background: 'var(--white)',
+      borderTop: '1px solid var(--border)',
+    }}>
+      {/* Resize handle — thin bar on top */}
+      <div
+        onMouseDown={handleMouseDown}
+        style={{
+          height: 5,
+          cursor: 'ns-resize',
+          background: 'transparent',
+          transition: 'background 0.15s',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--primary-light)'}
+        onMouseLeave={(e) => { if (!isDragging.current) e.currentTarget.style.background = 'transparent'; }}
+      />
+
+      {/* Toolbar — simple small icons */}
+      <div style={{
+        display: 'flex', gap: 4, padding: '4px 12px 0',
+      }}>
+        <button
+          onClick={() => imageInputRef.current?.click()}
+          title="图片"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 5, borderRadius: 4, lineHeight: 0,
+            color: 'var(--text-secondary)',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          title="文件"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 5, borderRadius: 4, lineHeight: 0,
+            color: 'var(--text-secondary)',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--primary-light)'; e.currentTarget.style.color = 'var(--primary)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Hidden file inputs */}
+      <input ref={imageInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) onSendImage(f); e.target.value = ''; }} />
+      <input ref={fileInputRef} type="file" style={{ display: 'none' }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) onSendFile(f); e.target.value = ''; }} />
+
+      {/* Textarea */}
+      <div style={{ padding: '6px 12px' }}>
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          placeholder="输入消息，Enter 发送，Shift+Enter 换行"
+          style={{
+            width: '100%',
+            height: areaHeight,
+            resize: 'none',
+            padding: '10px 12px',
+            border: '1.5px solid var(--border)',
+            borderRadius: 6,
+            fontSize: 14,
+            fontFamily: 'inherit',
+            lineHeight: 1.6,
+            outline: 'none',
+            transition: 'border-color 0.15s',
+          }}
+          onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+        />
+      </div>
+
+      {/* Send button row */}
+      <div style={{
+        display: 'flex', justifyContent: 'flex-end',
+        padding: '0 12px 10px',
+      }}>
+        <button
+          onClick={handleSend}
+          disabled={!text.trim()}
+          className="btn btn-primary"
+          style={{ padding: '7px 24px', fontSize: 13, borderRadius: 4 }}
+        >
+          发送
+        </button>
+      </div>
+    </div>
+  );
+}
