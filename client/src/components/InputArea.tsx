@@ -7,6 +7,7 @@ interface Props {
   selectedCount?: number;
   onToggleSelectMode?: () => void;
   onBatchDelete?: () => void;
+  onBatchDownload?: () => void;
   hasMessages?: boolean;
 }
 
@@ -14,7 +15,7 @@ const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 400;
 const DEFAULT_HEIGHT = 100;
 
-export default function InputArea({ onSendText, onSendFiles, selectMode, selectedCount, onToggleSelectMode, onBatchDelete, hasMessages }: Props) {
+export default function InputArea({ onSendText, onSendFiles, selectMode, selectedCount, onToggleSelectMode, onBatchDelete, onBatchDownload, hasMessages }: Props) {
   const [text, setText] = useState('');
   const [areaHeight, setAreaHeight] = useState(DEFAULT_HEIGHT);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,19 +118,23 @@ export default function InputArea({ onSendText, onSendFiles, selectMode, selecte
           </button>
         </div>
 
-        {/* Select / batch delete controls */}
+        {/* Batch operations */}
         {hasMessages && (
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             {selectMode ? (
               <>
-                <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>取消</button>
+                <button onClick={onBatchDownload} disabled={!selectedCount}
+                  style={{ background: 'none', border: 'none', color: selectedCount ? 'var(--primary)' : 'var(--text-secondary)', cursor: selectedCount ? 'pointer' : 'default', fontSize: 12 }}>
+                  下载{selectedCount ? `(${selectedCount})` : ''}
+                </button>
                 <button onClick={onBatchDelete} disabled={!selectedCount}
-                  style={{ background: 'none', border: 'none', color: selectedCount ? 'var(--danger)' : 'var(--text-secondary)', cursor: selectedCount ? 'pointer' : 'default', fontSize: 12, fontWeight: selectedCount ? 600 : 400 }}>
+                  style={{ background: 'none', border: 'none', color: selectedCount ? 'var(--danger)' : 'var(--text-secondary)', cursor: selectedCount ? 'pointer' : 'default', fontSize: 12 }}>
                   删除{selectedCount ? `(${selectedCount})` : ''}
                 </button>
+                <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>取消</button>
               </>
             ) : (
-              <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>选择</button>
+              <button onClick={onToggleSelectMode} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>批量操作</button>
             )}
           </div>
         )}

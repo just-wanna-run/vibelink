@@ -26,6 +26,20 @@ export default function Chat() {
     });
   };
 
+  const handleBatchDownload = () => {
+    const selectedMsgs = messages.filter((m) => selected.has(m.id));
+    const withFiles = selectedMsgs.filter((m) => (m.type === 'file' || m.type === 'image') && m.file_path);
+    if (withFiles.length === 0) { alert('选中的消息中没有可下载的文件'); return; }
+    withFiles.forEach((msg, i) => {
+      setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = `/api/files/${encodeURIComponent(msg.file_path!)}`;
+        a.download = msg.file_name || `file_${i}`;
+        a.click();
+      }, i * 300);
+    });
+  };
+
   const handleBatchDelete = async () => {
     if (selected.size === 0) return;
     if (!confirm(`确定删除选中的 ${selected.size} 条消息吗？`)) return;
@@ -264,6 +278,7 @@ export default function Chat() {
         selectedCount={selected.size}
         onToggleSelectMode={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
         onBatchDelete={handleBatchDelete}
+        onBatchDownload={handleBatchDownload}
         hasMessages={messages.length > 0}
       />
       </div>
