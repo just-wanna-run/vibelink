@@ -221,7 +221,7 @@ export default function Chat() {
               <path d="M12 19V5M5 12l7-7 7 7" />
             </svg>
             <span style={{ fontSize: 14 }}>开始发送你的第一条消息吧</span>
-            <span style={{ fontSize: 12 }}>在同一账号的另一台设备登录即可实时同步</span>
+            <span style={{ fontSize: 12 }}>另一台设备登录同一账号即可实时同步</span>
           </div>
         )}
 

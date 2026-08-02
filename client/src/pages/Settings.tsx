@@ -82,9 +82,16 @@ export default function Settings() {
         {/* About */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>关于 VibeLink</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>VibeLink 是一个轻量级的网页版文件传输助手。所有内容端到端加密，支持文字、图片、文件传输，最大支持 1GB 文件。</p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>Version 1.0.0 · 浏览器打开即用，无需安装</p>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>🔒 端到端加密 · 🌐 联网传输 · 📱💻 跨平台</p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+            手机和电脑之间互传文件总是不方便？VibeLink 就是你的随身传输助手。
+          </p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, marginTop: 8 }}>
+            ✨ 打开浏览器就能用，不用装 App<br />
+            🔒 端到端加密，服务器也看不到你的内容<br />
+            🌐 有网就能传，不挑 WiFi 不挑设备<br />
+            📁 文字、图片、文件，最大 1GB<br />
+            💰 完全免费，源码开放
+          </p>
         </div>
 
         {/* Support — at bottom */}
@@ -97,8 +104,8 @@ export default function Settings() {
 function SupportSection() {
   const [preview, setPreview] = useState<string | null>(null);
   return (
-    <div className="card" style={{ textAlign: 'center', padding: '16px 20px' }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>支持作者</h2>
+    <div className="card" style={{ textAlign: 'center', padding: '16px 20px', marginBottom: 20 }}>
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, textAlign: 'left' }}>支持作者</h2>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
         ☕ 这杯咖啡我请了，Bug 你继续修
       </div>
