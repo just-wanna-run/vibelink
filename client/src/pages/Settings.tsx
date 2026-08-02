@@ -97,8 +97,8 @@ export default function Settings() {
 function SupportSection() {
   const [preview, setPreview] = useState<string | null>(null);
   return (
-    <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '16px 20px' }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>支持作者</h2>
+    <div className="card" style={{ textAlign: 'center', padding: '16px 20px' }}>
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>支持作者</h2>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
         ☕ 这杯咖啡我请了，Bug 你继续修
       </div>
@@ -113,9 +113,6 @@ function SupportSection() {
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>{item.label}</div>
           </div>
         ))}
-      </div>
-      <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8, opacity: 0.6 }}>
-        截个屏 → 打开微信/支付宝扫一扫 → 相册选图
       </div>
       {preview && (
         <div onClick={() => setPreview(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, cursor: 'pointer' }}>
