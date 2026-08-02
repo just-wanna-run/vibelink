@@ -79,16 +79,11 @@ export default function Settings() {
           {showFeedback && <FeedbackSection />}
         </div>
 
-        {/* Support */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>❤️ 支持作者</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: 16 }}>
-            如果 VibeLink 帮到了你，欢迎给作者发个红包，让作品越来越好 🧧
-          </p>
-          <div style={{ textAlign: 'center', padding: '20px 16px 12px', border: '1px dashed var(--border)', borderRadius: 12, background: 'var(--bg)' }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🧧</div>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>感谢支持</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>每一份心意都是对开源作品的鼓励</div>
+        {/* Support — minimal */}
+        <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '16px 20px' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>🧧 喜欢 VibeLink？给作者发个红包吧</div>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', opacity: 0.7 }}>
+            保存下方二维码 → 打开微信/支付宝 → 扫一扫 → 选择相册中的二维码
           </div>
         </div>
 
