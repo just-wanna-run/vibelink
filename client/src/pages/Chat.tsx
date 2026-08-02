@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
 import api from '../services/api';
@@ -13,8 +13,29 @@ export default function Chat() {
     sendText, loadHistory, deleteMessage, pollNewMessages, addMessage,
   } = useChatStore();
 
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchDelete = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selected.size} 条消息吗？`)) return;
+    try {
+      await api.post('/messages/batch-delete', { ids: [...selected] });
+      useChatStore.setState((s) => ({ messages: s.messages.filter((m) => !selected.has(m.id)) }));
+      setSelected(new Set());
+      setSelectMode(false);
+    } catch { alert('删除失败'); }
+  };
 
   // Polling for new messages (2s interval, replaces WebSocket)
   useEffect(() => {
@@ -191,6 +212,20 @@ export default function Chat() {
           </div>
         )}
 
+        {/* Batch delete toolbar */}
+        {messages.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 20px', gap: 8 }}>
+            {!selectMode ? (
+              <button onClick={() => setSelectMode(true)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>选择</button>
+            ) : (
+              <>
+                <button onClick={() => { setSelectMode(false); setSelected(new Set()); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12 }}>取消</button>
+                <button onClick={handleBatchDelete} disabled={selected.size === 0} style={{ background: 'none', border: 'none', color: selected.size > 0 ? 'var(--danger)' : 'var(--text-secondary)', cursor: selected.size > 0 ? 'pointer' : 'default', fontSize: 12, fontWeight: selected.size > 0 ? 600 : 400 }}>删除({selected.size})</button>
+              </>
+            )}
+          </div>
+        )}
+
         {messages.length === 0 && !isLoadingHistory && (
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -205,30 +240,29 @@ export default function Chat() {
         )}
 
         {messages.map((msg, i) => {
-          // Grouping logic: show time header only for first message,
-          // or when gap from previous > 60 seconds, or when date changes
           const prevMsg = i > 0 ? messages[i - 1] : null;
           const prevDate = prevMsg ? new Date(prevMsg.created_at * 1000).toDateString() : '';
           const thisDate = new Date(msg.created_at * 1000).toDateString();
           const gapSeconds = prevMsg ? msg.created_at - prevMsg.created_at : Infinity;
           const showHeader = !prevMsg || prevDate !== thisDate || gapSeconds > 60;
+          const isSelected = selected.has(msg.id);
 
           return (
-            <div key={msg.id || msg.client_message_id}>
+            <div key={msg.id || msg.client_message_id} style={{ position: 'relative' }}>
               {showHeader && (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '8px 0',
-                  fontSize: 12,
-                  color: 'var(--text-secondary)',
-                }}>
+                <div style={{ textAlign: 'center', padding: '8px 0', fontSize: 12, color: 'var(--text-secondary)' }}>
                   {formatDateHeader(msg.created_at)}
                 </div>
               )}
-              <MessageBubble
-                message={msg}
-                onDelete={deleteMessage}
-              />
+              {selectMode && (
+                <div style={{ position: 'absolute', left: 8, top: '50%', zIndex: 2, transform: 'translateY(-50%)' }}>
+                  <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)}
+                    style={{ width: 20, height: 20, accentColor: 'var(--primary)', cursor: 'pointer' }} />
+                </div>
+              )}
+              <div style={{ opacity: selectMode ? 0.7 : 1, pointerEvents: selectMode ? 'none' : 'auto' }}>
+                <MessageBubble message={msg} onDelete={deleteMessage} />
+              </div>
             </div>
           );
         })}
