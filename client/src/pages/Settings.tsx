@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import api from '../services/api';
 
 export default function Settings() {
   const { user } = useAuthStore();
+  const { theme, toggle } = useThemeStore();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -57,6 +59,32 @@ export default function Settings() {
           <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
             {user?.email && <p style={{ marginBottom: 4 }}>📧 邮箱：{user.email}</p>}
             {user?.phone && <p style={{ marginBottom: 4 }}>📱 手机：{user.phone}</p>}
+          </div>
+        </div>
+
+        {/* Dark mode toggle */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 600 }}>夜间模式</h2>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+                {theme === 'dark' ? '已开启' : '已关闭'}
+              </p>
+            </div>
+            <button
+              onClick={toggle}
+              style={{
+                width: 52, height: 28, borderRadius: 14, border: 'none',
+                cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                background: theme === 'dark' ? 'var(--primary)' : '#ccc',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 3, left: theme === 'dark' ? 27 : 3,
+                width: 22, height: 22, borderRadius: '50%', background: '#fff',
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </button>
           </div>
         </div>
 

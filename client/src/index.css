@@ -263,6 +263,36 @@ a:hover { text-decoration: underline; }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+/* ===== Dark Mode ===== */
+[data-theme="dark"] {
+  --bg: #1a1d23;
+  --white: #252830;
+  --primary: #6db3e8;
+  --primary-hover: #5ba3da;
+  --primary-light: #1e3040;
+  --text: #e0e0e0;
+  --text-secondary: #999;
+  --border: #333840;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .message-received {
+  background: #2a2d35;
+  border-color: #333840;
+}
+
+[data-theme="dark"] .sidebar-logo,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  color: var(--text);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #666;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 767px) {
   .desktop-only { display: none !important; }
