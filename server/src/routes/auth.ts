@@ -255,6 +255,78 @@ router.post('/login-with-code', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/send-reset-code — send code for password reset
+router.post('/send-reset-code', async (req: Request, res: Response) => {
+  try {
+    const { email, phone } = req.body;
+    if (!email && !phone) {
+      return res.status(400).json({ error: '请输入邮箱或手机号' });
+    }
+
+    // Check user exists
+    let user: any;
+    if (email) {
+      user = getDb().prepare('SELECT * FROM users WHERE email = ?').get(email);
+    } else {
+      user = getDb().prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    }
+    if (!user) {
+      return res.status(400).json({ error: '该账号不存在' });
+    }
+
+    const target = email || phone;
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    codeStore.set(`reset_${target}`, { code, expires: Date.now() + 5 * 60 * 1000 });
+
+    const result = await sendSMS(phone || '', code);
+    // For email, just log the code for now
+    if (email) {
+      console.log(`[RESET] Reset code for ${email}: ${code}`);
+    }
+
+    return res.json({
+      message: '验证码已发送',
+      code: result.dev ? code : undefined,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: '发送失败' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { email, phone, code, newPassword } = req.body;
+
+    if (!email && !phone) return res.status(400).json({ error: '请输入邮箱或手机号' });
+    if (!code) return res.status(400).json({ error: '请输入验证码' });
+    if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: '新密码至少6个字符' });
+
+    const target = email || phone;
+    const stored = codeStore.get(`reset_${target}`);
+    if (!stored || stored.expires < Date.now()) {
+      codeStore.delete(`reset_${target}`);
+      return res.status(400).json({ error: '验证码已过期' });
+    }
+    if (stored.code !== code) {
+      return res.status(400).json({ error: '验证码错误' });
+    }
+    codeStore.delete(`reset_${target}`);
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    if (email) {
+      getDb().prepare('UPDATE users SET password_hash = ? WHERE email = ?').run(passwordHash, email);
+    } else {
+      getDb().prepare('UPDATE users SET password_hash = ? WHERE phone = ?').run(passwordHash, phone);
+    }
+    saveDb();
+
+    return res.json({ message: '密码已重置，请重新登录' });
+  } catch (err: any) {
+    return res.status(500).json({ error: '重置失败' });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', (req: Request, res: Response) => {
   try {
