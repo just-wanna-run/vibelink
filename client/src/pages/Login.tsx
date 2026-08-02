@@ -49,7 +49,8 @@ export default function Login() {
     if (countdown > 0) return;
     setError('');
     try {
-      await api.post('/auth/send-reset-code', { email: tab === 'email' ? target : undefined, phone: tab === 'phone' ? target : undefined });
+      const { data } = await api.post('/auth/send-reset-code', { email: tab === 'email' ? target : undefined, phone: tab === 'phone' ? target : undefined });
+      if (data.code) { alert(`验证码：${data.code}`); navigator.clipboard?.writeText(data.code); }
       setCountdown(60);
     } catch (err: any) { setError(err.response?.data?.error || '发送失败'); }
   };
