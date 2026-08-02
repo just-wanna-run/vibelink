@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
-import { initWebRTCReceiver, sendFileViaWebRTC } from '../services/webrtc';
 import api from '../services/api';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
@@ -69,87 +68,76 @@ export default function Chat() {
     }
   };
 
-  // Send file/image — small files via HTTP, large files (>10MB) via WebRTC
+  // Send file/image via HTTP upload
   const handleSendFile = async (file: File) => {
     const isImage = file.type.startsWith('image/');
-    const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
+    const clientId = `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-    // For images, read base64 for preview, then upload
-    let base64Content: string | undefined;
-    if (isImage && file.size < 5 * 1024 * 1024) {
-      base64Content = await new Promise((resolve) => {
+    // For images, generate local preview
+    let localPreview: string | undefined;
+    if (isImage) {
+      localPreview = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(undefined);
         reader.readAsDataURL(file);
       });
     }
 
-    if (file.size > LARGE_FILE_THRESHOLD) {
-      // Use WebRTC P2P for large files
-      const clientId = `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-      const optimistic: import('../store/chatStore').Message = {
-        id: clientId,
-        user_id: '',
-        from_device: myDeviceId,
-        type: 'file',
-        content: null,
-        file_name: file.name,
-        file_size: file.size,
-        file_type: file.type,
-        file_path: null,
-        encrypted_key: null,
-        iv: null,
-        client_message_id: clientId,
-        created_at: Math.floor(Date.now() / 1000),
-        pending: true,
-      };
-      addMessage(optimistic);
+    // Show optimistic message
+    const optimistic: import('../store/chatStore').Message = {
+      id: clientId,
+      user_id: '',
+      from_device: myDeviceId,
+      type: isImage ? 'image' : 'file',
+      content: localPreview || null,
+      file_name: file.name,
+      file_size: file.size,
+      file_type: file.type,
+      file_path: null,
+      encrypted_key: null,
+      iv: null,
+      client_message_id: clientId,
+      created_at: Math.floor(Date.now() / 1000),
+      pending: true,
+    };
+    addMessage(optimistic);
 
-      try {
-        await sendFileViaWebRTC(file);
-        // Mark as sent (remove pending)
-        // Note: the receiver will get the file directly, no server message needed
-        setOptimisticSent(clientId);
-      } catch {
-        setOptimisticFailed(clientId);
-      }
-      return;
-    }
-
-    // Small file: HTTP upload
+    // Upload via FormData (file only, no base64 doubling)
     const formData = new FormData();
     formData.append('type', isImage ? 'image' : 'file');
-    formData.append('clientMessageId', `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`);
+    formData.append('clientMessageId', clientId);
     formData.append('file', file);
-    if (base64Content) {
-      formData.append('content', base64Content);
-    }
 
     try {
       const { data } = await api.post('/messages/send', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 min for file uploads
       });
-      if (!data.duplicate) {
-        addMessage(data.message);
+      if (data.message && !data.duplicate) {
+        // Replace optimistic with server message, keep local preview
+        setOptimisticConfirmed(clientId, { ...data.message, content: localPreview || data.message.content });
       }
-    } catch {
-      // handle error
+    } catch (err) {
+      console.error('[SendFile] Failed:', err);
+      setOptimisticFailed(clientId);
     }
   };
 
-  // Helpers for optimistic updates
-  const setOptimisticSent = (clientId: string) => {
+  // Helper: replace optimistic with confirmed message
+  const setOptimisticConfirmed = (clientId: string, confirmed: import('../store/chatStore').Message) => {
     useChatStore.setState((s) => ({
       messages: s.messages.map((m) =>
-        m.client_message_id === clientId ? { ...m, pending: false } : m
+        m.client_message_id === clientId ? { ...confirmed, pending: false } : m
       ),
     }));
   };
 
+  // Helper: mark optimistic as failed
   const setOptimisticFailed = (clientId: string) => {
     useChatStore.setState((s) => ({
       messages: s.messages.map((m) =>
-        m.client_message_id === clientId ? { ...m, pending: false, file_name: '[P2P发送失败] ' + (m.file_name || '') } : m
+        m.client_message_id === clientId ? { ...m, pending: false, file_name: '[发送失败] ' + (m.file_name || '') } : m
       ),
     }));
   };
