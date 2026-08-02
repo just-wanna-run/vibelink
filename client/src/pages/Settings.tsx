@@ -97,9 +97,10 @@ export default function Settings() {
 function SupportSection() {
   const [preview, setPreview] = useState<string | null>(null);
   return (
-    <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '14px 16px' }}>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>
-        ☕ 这杯咖啡我请了，代码你继续写
+    <div className="card" style={{ marginBottom: 20, textAlign: 'center', padding: '16px 20px' }}>
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>支持作者</h2>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+        ☕ 这杯咖啡我请了，Bug 你继续修
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
         {[
