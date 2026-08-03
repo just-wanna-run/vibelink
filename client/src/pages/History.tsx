@@ -20,7 +20,7 @@ export default function History() {
   const { messages, loadHistory, isLoadingHistory, hasMore, deleteMessage } = useChatStore();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'text' | 'image' | 'file'>('all');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [dateFilter, setDateFilter] = useState('');
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -73,13 +73,12 @@ export default function History() {
   const filtered = useMemo(() => {
     let list = [...messages].reverse();
     if (filter !== 'all') list = list.filter((m) => m.type === filter);
-    if (dateFilter !== 'all') {
-      const now = Date.now();
-      const thresholds: Record<string, number> = { today: now - 86400000, week: now - 604800000, month: now - 2592000000 };
-      const threshold = thresholds[dateFilter];
+    if (dateFilter) {
       list = list.filter((m) => {
         const ts = typeof m.created_at === 'string' ? new Date(m.created_at).getTime() : m.created_at * 1000;
-        return ts > threshold;
+        const msgDate = new Date(ts).toDateString();
+        const filterDate = new Date(dateFilter).toDateString();
+        return msgDate === filterDate;
       });
     }
     if (search.trim()) {
@@ -119,13 +118,8 @@ export default function History() {
               <option value="image">图片</option>
               <option value="file">文件</option>
             </select>
-            <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value as any)}
-              style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer' }}>
-              <option value="all">全部时间</option>
-              <option value="today">今天</option>
-              <option value="week">最近一周</option>
-              <option value="month">最近一月</option>
-            </select>
+            <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}
+              style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer', color: 'var(--text)', width: 160 }} />
           </div>
         </header>
 
