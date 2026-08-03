@@ -18,26 +18,23 @@ export default function Chat() {
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(false);
-    if (e.dataTransfer.files?.length) {
-      handleSendFiles(e.dataTransfer.files);
-    }
-  };
+  // Global drag-and-drop — prevent browser from opening files in new tab
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); };
+    const onDragLeave = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); };
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault(); e.stopPropagation(); setDragOver(false);
+      if (e.dataTransfer?.files?.length) handleSendFiles(e.dataTransfer.files);
+    };
+    document.addEventListener('dragover', onDragOver);
+    document.addEventListener('dragleave', onDragLeave);
+    document.addEventListener('drop', onDrop);
+    return () => {
+      document.removeEventListener('dragover', onDragOver);
+      document.removeEventListener('dragleave', onDragLeave);
+      document.removeEventListener('drop', onDrop);
+    };
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -275,11 +272,7 @@ export default function Chat() {
       <div style={{
         display: 'flex', flexDirection: 'column', height: '100%',
         width: '100%', boxSizing: 'border-box', position: 'relative',
-      }}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+      }}>
         {/* Drag overlay */}
         {dragOver && (
           <div style={{
