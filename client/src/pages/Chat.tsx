@@ -57,8 +57,10 @@ export default function Chat() {
         } catch { /* skip failed files */ }
       }
       alert(`已保存 ${downloadable.length} 个文件`);
-    } catch {
-      // Fallback: download individually
+    } catch (err: any) {
+      // User cancelled folder picker — do nothing
+      if (err?.name === 'AbortError') return;
+      // Fallback: browser doesn't support folder picker, download individually
       downloadable.forEach((msg) => {
         const a = document.createElement('a');
         if (msg.type === 'image' && msg.content) {
