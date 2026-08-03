@@ -140,7 +140,7 @@ export default function History() {
               </div>
             );
           })}
-          {hasMore && <div style={{ textAlign: 'center', padding: 16 }}><button onClick={loadHistory} disabled={isLoadingHistory} className="btn btn-outline" style={{ fontSize: 13 }}>{isLoadingHistory ? '加载中...' : '加载更多'}</button></div>}
+          {hasMore && messages.length > 0 && <div style={{ textAlign: 'center', padding: 16 }}><button onClick={loadHistory} disabled={isLoadingHistory} className="btn btn-outline" style={{ fontSize: 13 }}>{isLoadingHistory ? '加载中...' : '加载更多'}</button></div>}
         </div>
       </div>
     </Layout>
