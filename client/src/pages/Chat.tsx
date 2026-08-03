@@ -104,13 +104,26 @@ export default function Chat() {
     } catch (err: any) {
       setDownloadProgress(null);
       if (err?.name === 'AbortError') return;
-      downloadable.forEach((msg, i) => {
-        const a = document.createElement('a');
-        a.href = msg.type === 'image' && msg.content ? msg.content : `/api/files/${encodeURIComponent(msg.file_path!)}`;
-        a.download = getFileName(msg, i);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      if (err?.message?.includes('system')) {
+        alert('无法保存到系统文件夹，请选择"下载"或其他普通文件夹');
+        return;
+      }
+      // Fallback: download via blob to preserve filename
+      downloadable.forEach(async (msg, i) => {
+        try {
+          let blob: Blob;
+          if (msg.type === 'image' && msg.content) {
+            blob = await (await fetch(msg.content)).blob();
+          } else {
+            const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
+            blob = await (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = getFileName(msg, i); a.style.display = 'none';
+          document.body.appendChild(a); a.click();
+          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        } catch {}
       });
     }
   };

@@ -68,7 +68,15 @@ export default function History() {
       alert(`已保存 ${saved} 个文件`);
     } catch (err: any) {
       if (err?.name === 'AbortError') return;
-      dl.forEach((msg, i) => { const a = document.createElement('a'); a.href = msg.type === 'image' && msg.content ? msg.content : `/api/files/${msg.file_path}`; a.download = getFileName(msg, i); document.body.appendChild(a); a.click(); document.body.removeChild(a); });
+      dl.forEach(async (msg, i) => {
+        try {
+          let blob: Blob;
+          if (msg.type === 'image' && msg.content) { blob = await (await fetch(msg.content)).blob(); }
+          else { const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || ''; blob = await (await fetch(`/api/files/${msg.file_path}`, { headers: { Authorization: `Bearer ${t}` } })).blob(); }
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = getFileName(msg, i); document.body.appendChild(a); a.click();
+          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        } catch {}
+      });
     }
   };
 
