@@ -118,8 +118,11 @@ export default function History() {
               <option value="image">图片</option>
               <option value="file">文件</option>
             </select>
-            <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}
-              style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer', color: 'var(--text)', width: 160 }} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span style={{ position: 'absolute', left: 10, fontSize: 14, color: 'var(--text-secondary)', pointerEvents: 'none', zIndex: 1 }}>日期</span>
+              <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}
+                style={{ padding: '8px 12px 8px 50px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer', color: dateFilter ? 'var(--text)' : 'transparent', width: 160 }} />
+            </div>
           </div>
         </header>
 
