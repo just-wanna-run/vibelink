@@ -44,7 +44,14 @@ app.get('/api/feedback', async (_req, res) => {
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
+  res.json({
+    status: 'ok',
+    timestamp: Date.now(),
+    hasSupabaseUrl: !!process.env.SUPABASE_URL,
+    hasSupabaseKey: !!process.env.SUPABASE_KEY,
+    supabaseUrlLen: (process.env.SUPABASE_URL || '').length,
+    supabaseKeyLen: (process.env.SUPABASE_KEY || '').length,
+  });
 });
 
 // ---- Serve frontend static files in production ----
