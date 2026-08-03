@@ -108,11 +108,11 @@ export default function History() {
               )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input type="text" placeholder="搜索内容或文件名..." value={search} onChange={(e) => setSearch(e.target.value)}
-              style={{ flex: 1, padding: '8px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, outline: 'none' }} />
+              style={{ flex: '1 1 120px', padding: '8px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, outline: 'none', minWidth: 100 }} />
             <select value={filter} onChange={(e) => setFilter(e.target.value as any)}
-              style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer' }}>
+              style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, background: 'var(--white)', cursor: 'pointer', flexShrink: 0 }}>
               <option value="all">全部</option>
               <option value="text">文字</option>
               <option value="image">图片</option>
