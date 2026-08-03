@@ -16,6 +16,28 @@ export default function Chat() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    if (e.dataTransfer.files?.length) {
+      handleSendFiles(e.dataTransfer.files);
+    }
+  };
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -252,8 +274,29 @@ export default function Chat() {
     <Layout>
       <div style={{
         display: 'flex', flexDirection: 'column', height: '100%',
-        width: '100%', boxSizing: 'border-box',
-      }}>
+        width: '100%', boxSizing: 'border-box', position: 'relative',
+      }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag overlay */}
+        {dragOver && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 100,
+            background: 'rgba(91,155,213,0.15)', border: '3px dashed var(--primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 12, margin: 8, pointerEvents: 'none',
+          }}>
+            <div style={{
+              background: 'var(--white)', padding: '20px 40px', borderRadius: 12,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>📥</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--primary)' }}>释放文件即可发送</div>
+            </div>
+          </div>
+        )}
 
       {/* Messages */}
       <div
