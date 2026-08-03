@@ -4,8 +4,13 @@ import { encryptContent, decryptContent } from './encryptionStore';
 
 // Supabase returns ISO timestamps, convert to Unix epoch for consistency
 function fixMessage(msg: any) {
-  if (msg && typeof msg.created_at === 'string') {
-    msg.created_at = Math.floor(new Date(msg.created_at).getTime() / 1000);
+  if (msg && msg.created_at != null && typeof msg.created_at !== 'number') {
+    const t = new Date(msg.created_at).getTime();
+    if (!isNaN(t)) {
+      msg.created_at = Math.floor(t / 1000);
+    } else {
+      msg.created_at = Math.floor(Date.now() / 1000);
+    }
   }
   return msg;
 }
