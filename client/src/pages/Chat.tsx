@@ -26,7 +26,7 @@ export default function Chat() {
     });
   };
 
-  const handleBatchDownload = () => {
+  const handleBatchDownload = async () => {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const downloadable = selectedMsgs.filter((m) =>
       (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path)
@@ -35,23 +35,44 @@ export default function Chat() {
       alert('选中的消息中没有可下载的文件');
       return;
     }
-    // Trigger all downloads at once — browsers save to default folder
-    downloadable.forEach((msg) => {
-      const a = document.createElement('a');
-      if (msg.type === 'image' && msg.content) {
-        a.href = msg.content;
-        a.download = msg.file_name || `image_${Date.now()}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else if (msg.file_path) {
-        a.href = `/api/files/${encodeURIComponent(msg.file_path)}`;
-        a.download = msg.file_name || 'file';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+
+    // Try File System Access API (pick a folder, save all files there)
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker();
+      for (const msg of downloadable) {
+        try {
+          let blob: Blob;
+          if (msg.type === 'image' && msg.content) {
+            const res = await fetch(msg.content);
+            blob = await res.blob();
+          } else {
+            const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
+            const res = await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } });
+            blob = await res.blob();
+          }
+          const fileHandle = await dirHandle.getFileHandle(msg.file_name || `file_${Date.now()}`, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } catch { /* skip failed files */ }
       }
-    });
+      alert(`已保存 ${downloadable.length} 个文件`);
+    } catch {
+      // Fallback: download individually
+      downloadable.forEach((msg) => {
+        const a = document.createElement('a');
+        if (msg.type === 'image' && msg.content) {
+          a.href = msg.content;
+          a.download = msg.file_name || `image_${Date.now()}.jpg`;
+        } else {
+          a.href = `/api/files/${encodeURIComponent(msg.file_path!)}`;
+          a.download = msg.file_name || 'file';
+        }
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
   };
 
   const handleBatchDelete = async () => {
