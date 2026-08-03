@@ -319,7 +319,46 @@ a:hover { text-decoration: underline; }
   border-color: #333840;
 }
 
-/* ===== Responsive ===== */
+[data-theme="dark"] .btn-outline {
+  color: #999;
+  border-color: #444;
+  background: transparent;
+}
+[data-theme="dark"] .btn-outline:hover:not(:disabled) { background: #333; color: #ddd; }
+
+[data-theme="dark"] .btn-danger {
+  background: #c0392b;
+}
+[data-theme="dark"] .btn-danger:disabled {
+  background: #551;
+  color: #888;
+}
+
+[data-theme="dark"] .tabs { border-color: #333840; }
+[data-theme="dark"] .tab { color: #888; }
+[data-theme="dark"] .tab:hover { color: #bbb; }
+[data-theme="dark"] .tab.active { color: var(--primary); }
+
+[data-theme="dark"] select option {
+  background: #1e2128;
+  color: var(--text);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #444; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #555; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #1a1d23; }
+
+[data-theme="dark"] .message-sent {
+  background: #3a6b9e;
+}
+
+[data-theme="dark"] .btn-primary:disabled {
+  opacity: 0.4;
+}
+
+[data-theme="dark"] input[type="checkbox"] {
+  accent-color: var(--primary);
+}
 @media (max-width: 767px) {
   .desktop-only { display: none !important; }
 }
