@@ -5,15 +5,19 @@ import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
 import api from '../services/api';
 
 function getFileName(msg: any, i: number): string {
-  if (msg.file_name) return msg.file_name;
+  const ts = `${Date.now()}_${i}`;
+  if (msg.file_name) {
+    const dot = msg.file_name.lastIndexOf('.');
+    return dot > 0 ? `${msg.file_name.slice(0, dot)}_${ts}${msg.file_name.slice(dot)}` : `${msg.file_name}_${ts}`;
+  }
   if (msg.type === 'image') {
     const ext = msg.content?.startsWith('data:image/png') ? 'png'
       : msg.content?.startsWith('data:image/gif') ? 'gif'
       : msg.content?.startsWith('data:image/webp') ? 'webp'
       : 'jpg';
-    return `image_${Date.now()}_${i}.${ext}`;
+    return `image_${ts}.${ext}`;
   }
-  return `file_${Date.now()}_${i}`;
+  return `file_${ts}`;
 }
 
 export default function History() {

@@ -47,16 +47,19 @@ export default function Chat() {
   };
 
   const getFileName = (msg: import('../store/chatStore').Message, index: number): string => {
-    if (msg.file_name) return msg.file_name;
+    const ts = `${Date.now()}_${index}`;
+    if (msg.file_name) {
+      const dot = msg.file_name.lastIndexOf('.');
+      return dot > 0 ? `${msg.file_name.slice(0, dot)}_${ts}${msg.file_name.slice(dot)}` : `${msg.file_name}_${ts}`;
+    }
     if (msg.type === 'image') {
-      // Determine extension from base64 content
       const ext = msg.content?.startsWith('data:image/png') ? 'png'
         : msg.content?.startsWith('data:image/gif') ? 'gif'
         : msg.content?.startsWith('data:image/webp') ? 'webp'
         : 'jpg';
-      return `image_${Date.now()}_${index}.${ext}`;
+      return `image_${ts}.${ext}`;
     }
-    return `file_${Date.now()}_${index}`;
+    return `file_${ts}`;
   };
 
   const handleBatchDownload = async () => {
