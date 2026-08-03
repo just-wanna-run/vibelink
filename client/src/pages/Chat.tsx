@@ -15,6 +15,7 @@ export default function Chat() {
 
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +25,19 @@ export default function Chat() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  };
+
+  const getFileName = (msg: import('../store/chatStore').Message, index: number): string => {
+    if (msg.file_name) return msg.file_name;
+    if (msg.type === 'image') {
+      // Determine extension from base64 content
+      const ext = msg.content?.startsWith('data:image/png') ? 'png'
+        : msg.content?.startsWith('data:image/gif') ? 'gif'
+        : msg.content?.startsWith('data:image/webp') ? 'webp'
+        : 'jpg';
+      return `image_${Date.now()}_${index}.${ext}`;
+    }
+    return `file_${Date.now()}_${index}`;
   };
 
   const handleBatchDownload = async () => {
@@ -36,10 +50,12 @@ export default function Chat() {
       return;
     }
 
-    // Try File System Access API (pick a folder, save all files there)
     try {
       const dirHandle = await (window as any).showDirectoryPicker();
-      for (const msg of downloadable) {
+      setDownloadProgress({ current: 0, total: downloadable.length });
+      let saved = 0;
+      for (let i = 0; i < downloadable.length; i++) {
+        const msg = downloadable[i];
         try {
           let blob: Blob;
           if (msg.type === 'image' && msg.content) {
@@ -50,26 +66,26 @@ export default function Chat() {
             const res = await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } });
             blob = await res.blob();
           }
-          const fileHandle = await dirHandle.getFileHandle(msg.file_name || `file_${Date.now()}`, { create: true });
+          const fname = getFileName(msg, i);
+          const fileHandle = await dirHandle.getFileHandle(fname, { create: true });
           const writable = await fileHandle.createWritable();
           await writable.write(blob);
           await writable.close();
-        } catch { /* skip failed files */ }
+          saved++;
+        } catch { /* skip failed */ }
+        setDownloadProgress({ current: i + 1, total: downloadable.length });
       }
-      alert(`已保存 ${downloadable.length} 个文件`);
+      setDownloadProgress(null);
+      setSelected(new Set());
+      setSelectMode(false);
+      alert(`已保存 ${saved} 个文件`);
     } catch (err: any) {
-      // User cancelled folder picker — do nothing
+      setDownloadProgress(null);
       if (err?.name === 'AbortError') return;
-      // Fallback: browser doesn't support folder picker, download individually
-      downloadable.forEach((msg) => {
+      downloadable.forEach((msg, i) => {
         const a = document.createElement('a');
-        if (msg.type === 'image' && msg.content) {
-          a.href = msg.content;
-          a.download = msg.file_name || `image_${Date.now()}.jpg`;
-        } else {
-          a.href = `/api/files/${encodeURIComponent(msg.file_path!)}`;
-          a.download = msg.file_name || 'file';
-        }
+        a.href = msg.type === 'image' && msg.content ? msg.content : `/api/files/${encodeURIComponent(msg.file_path!)}`;
+        a.download = getFileName(msg, i);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -251,6 +267,14 @@ export default function Chat() {
           flexDirection: 'column',
         }}
       >
+        {downloadProgress && (
+          <div style={{ background: 'var(--primary-light)', padding: '6px 20px', fontSize: 12, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>📥 {downloadProgress.current}/{downloadProgress.total}</span>
+            <div style={{ flex: 1, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: '100%', background: 'var(--primary)', borderRadius: 2, width: `${(downloadProgress.current / downloadProgress.total) * 100}%`, transition: 'width 0.3s' }} />
+            </div>
+          </div>
+        )}
         {isLoadingHistory && (
           <div style={{ textAlign: 'center', padding: 16, color: 'var(--text-secondary)', fontSize: 13 }}>
             加载历史记录...
