@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import api from '../services/api';
 import { encryptContent, decryptContent } from './encryptionStore';
 
+// Supabase returns ISO timestamps, convert to Unix epoch for consistency
+function fixMessage(msg: any) {
+  if (msg && typeof msg.created_at === 'string') {
+    msg.created_at = Math.floor(new Date(msg.created_at).getTime() / 1000);
+  }
+  return msg;
+}
+
 export interface Message {
   id: string;
   user_id: string;
@@ -91,7 +99,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           if (s.messages.some((m) => m.client_message_id === clientId)) {
             return s;
           }
-          return { messages: [...s.messages, { ...res.data.message, pending: false }] };
+          return { messages: [...s.messages, { ...fixMessage(res.data.message), pending: false }] };
         });
       }
     } catch (err) {
@@ -118,6 +126,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const historyMessages: Message[] = data.messages || [];
       // Decrypt history messages
       for (const msg of historyMessages) {
+        fixMessage(msg);
         if (msg.content && msg.iv) {
           msg.content = await decryptContent(msg.content, msg.iv);
         }
@@ -155,6 +164,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const newMessages: Message[] = data.messages || [];
       // Decrypt incoming messages
       for (const msg of newMessages) {
+        fixMessage(msg);
         if (msg.content && msg.iv) {
           msg.content = await decryptContent(msg.content, msg.iv);
         }

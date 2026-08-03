@@ -28,27 +28,28 @@ export default function Chat() {
 
   const handleBatchDownload = () => {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
-    let count = 0;
-    selectedMsgs.forEach((msg, i) => {
+    const downloadable = selectedMsgs.filter((m) =>
+      (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path)
+    );
+    if (downloadable.length === 0) {
+      alert('选中的消息中没有可下载的文件');
+      return;
+    }
+    downloadable.forEach((msg, i) => {
       setTimeout(() => {
         if (msg.type === 'image' && msg.content) {
-          // Images: download from base64 content
           const a = document.createElement('a');
           a.href = msg.content;
           a.download = msg.file_name || `image_${Date.now()}.jpg`;
           a.click();
-          count++;
-        } else if ((msg.type === 'file') && msg.file_path) {
-          // Files: download from server
+        } else if (msg.file_path) {
           const a = document.createElement('a');
           a.href = `/api/files/${encodeURIComponent(msg.file_path)}`;
           a.download = msg.file_name || `file_${i}`;
           a.click();
-          count++;
         }
       }, i * 300);
     });
-    if (count === 0) { alert('选中的消息中没有可下载的文件'); }
   };
 
   const handleBatchDelete = async () => {
