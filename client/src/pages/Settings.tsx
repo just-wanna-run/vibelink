@@ -107,7 +107,7 @@ function SupportSection() {
     <div className="card" style={{ textAlign: 'center', padding: '16px 20px', marginBottom: 20 }}>
       <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, textAlign: 'left' }}>支持作者</h2>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
-        ☕ 这杯咖啡我请了，Bug 你继续修
+        🍭 这根棒棒糖我请了，Bug 你继续修
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
         {[
