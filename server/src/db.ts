@@ -1,16 +1,24 @@
-// Supabase REST API — minimal wrapper using Node.js https
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
-const BASE = `${SUPABASE_URL}/rest/v1`;
+// Supabase REST API — minimal wrapper
+// Read env vars at call time, not module load time
+
+const BASE_URL = 'https://oqpqyrygvrildbjjbqlf.supabase.co';
+
+function getVars() {
+  return {
+    url: process.env.SUPABASE_URL || BASE_URL,
+    key: process.env.SUPABASE_KEY || '',
+  };
+}
 
 function req(method: string, path: string, body?: any, hdr?: any): Promise<any> {
+  const { url, key } = getVars();
   return new Promise((resolve, reject) => {
     const https = require('https');
     const { URL } = require('url');
-    const u = new URL(`${BASE}${path}`);
+    const u = new URL(`${url}/rest/v1${path}`);
     const headers: any = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
       'Content-Type': 'application/json',
       ...hdr,
     };
@@ -24,7 +32,7 @@ function req(method: string, path: string, body?: any, hdr?: any): Promise<any> 
         if (res.statusCode >= 200 && res.statusCode < 300) {
           try { resolve(d ? JSON.parse(d) : null); } catch { resolve(null); }
         } else {
-          reject(new Error(`DB ${method} ${path} -> ${res.statusCode}: ${d}`));
+          reject(new Error(`DB ${method} ${path} -> ${res.statusCode}`));
         }
       });
     });
@@ -39,7 +47,6 @@ type Row = Record<string, any>;
 export function getDb() {
   return {
     from: (table: string) => ({
-      // SELECT
       select: (cols: string = '*') => {
         let q = `/${table}?select=${cols}`;
         const chain: any = {
@@ -56,16 +63,13 @@ export function getDb() {
         };
         return chain;
       },
-      // INSERT
       insert: (row: Row) => ({
         select: (): Promise<Row[]> => req('POST', `/${table}?select=*`, row, { 'Prefer': 'return=representation' }),
         then: (fn: (r: any) => any) => req('POST', `/${table}`, row, { 'Prefer': 'return=representation' }).then(fn),
       }),
-      // UPDATE
       update: (row: Row) => ({
         eq: (c: string, v: any): Promise<any> => req('PATCH', `/${table}?${c}=eq.${encodeURIComponent(v)}`, row),
       }),
-      // DELETE
       delete: () => {
         let dq = '';
         const dchain: any = {
