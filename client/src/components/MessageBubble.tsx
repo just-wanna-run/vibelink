@@ -10,7 +10,16 @@ interface Props {
 const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
 export function formatDateHeader(ts: number): string {
-  const d = new Date(ts * 1000);
+  // Handle ISO strings or NaN
+  let d: Date;
+  if (typeof ts === 'string') {
+    d = new Date(ts);
+  } else if (typeof ts === 'number' && !isNaN(ts)) {
+    d = new Date(ts * 1000);
+  } else {
+    d = new Date();
+  }
+  if (isNaN(d.getTime())) d = new Date();
   const month = d.getMonth() + 1;
   const day = d.getDate();
   const weekday = WEEKDAYS[d.getDay()];
