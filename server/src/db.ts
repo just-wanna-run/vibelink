@@ -7,8 +7,12 @@ let supabase: SupabaseClient;
 
 function getSupabase(): SupabaseClient {
   if (!supabase) {
+    if (!supabaseKey) {
+      console.error('[DB] SUPABASE_KEY is not set!');
+    }
+    console.log('[DB] Connecting to Supabase:', supabaseUrl, 'key length:', supabaseKey.length);
     supabase = createClient(supabaseUrl, supabaseKey);
-    console.log('[DB] Supabase connected');
+    console.log('[DB] Supabase client created');
   }
   return supabase;
 }
