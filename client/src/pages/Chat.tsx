@@ -26,7 +26,7 @@ export default function Chat() {
     });
   };
 
-  const handleBatchDownload = async () => {
+  const handleBatchDownload = () => {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const downloadable = selectedMsgs.filter((m) =>
       (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path)
@@ -35,22 +35,23 @@ export default function Chat() {
       alert('选中的消息中没有可下载的文件');
       return;
     }
-    // Download one by one — each waits for user to confirm/cancel previous
-    for (const msg of downloadable) {
-      await new Promise<void>((resolve) => {
-        const a = document.createElement('a');
-        if (msg.type === 'image' && msg.content) {
-          a.href = msg.content;
-          a.download = msg.file_name || `image_${Date.now()}.jpg`;
-        } else if (msg.file_path) {
-          a.href = `/api/files/${encodeURIComponent(msg.file_path)}`;
-          a.download = msg.file_name || 'file';
-        }
+    // Trigger all downloads at once — browsers save to default folder
+    downloadable.forEach((msg) => {
+      const a = document.createElement('a');
+      if (msg.type === 'image' && msg.content) {
+        a.href = msg.content;
+        a.download = msg.file_name || `image_${Date.now()}.jpg`;
+        document.body.appendChild(a);
         a.click();
-        // Resolve after a short delay to let browser process the download
-        setTimeout(resolve, 500);
-      });
-    }
+        document.body.removeChild(a);
+      } else if (msg.file_path) {
+        a.href = `/api/files/${encodeURIComponent(msg.file_path)}`;
+        a.download = msg.file_name || 'file';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    });
   };
 
   const handleBatchDelete = async () => {
