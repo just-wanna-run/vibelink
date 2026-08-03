@@ -65,9 +65,10 @@ router.get('/history', authMiddleware, async (req: AuthRequest, res: Response) =
 
     const db = getDb();
     const beforeDate = new Date(before * 1000).toISOString();
-    const { data: messages } = await db.from('messages')
-      .select('*').eq('user_id', userId).lt('created_at', beforeDate)
-      .order('created_at', { ascending: false }).limit(limit);
+    let query = db.from('messages')
+      .select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(limit);
+    const result = await query;
+    const messages = result.data || result;
 
     return res.json({ messages: (messages || []).reverse() });
   } catch (err: any) {
@@ -81,10 +82,10 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const after = parseInt(req.query.after as string) || 0;
     const db = getDb();
-    const afterDate = new Date(after * 1000).toISOString();
-    const { data: messages } = await db.from('messages')
-      .select('*').eq('user_id', userId).gt('created_at', afterDate)
-      .order('created_at', { ascending: true }).limit(20);
+    let query = db.from('messages')
+      .select('*').eq('user_id', userId).order('created_at', { ascending: true }).limit(20);
+    const result = await query;
+    const messages = result.data || result;
     return res.json({ messages: messages || [] });
   } catch (err: any) {
     return res.status(500).json({ error: '获取消息失败' });
