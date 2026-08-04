@@ -105,13 +105,35 @@ export default function Login() {
   return (
     <div className="page-center">
       <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ width: 64, height: 64, borderRadius: 16, background: 'linear-gradient(135deg, #5B9BD5, #4A8AC4)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" /></svg>
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>VibeLink</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{forgotMode ? '重置密码' : '网页版文件传输助手'}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{forgotMode ? '重置密码' : '更自由的跨设备文件传输'}</p>
         </div>
+
+        {!forgotMode && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+            {[
+              { icon: '🔓', title: '独立账号，随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用' },
+              { icon: '🚀', title: '不限大小，跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB、任意网络' },
+              { icon: '📱', title: '全平台支持，不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传，有浏览器就行' },
+              { icon: '🔐', title: '端到端加密，隐私安全', desc: '其他工具可查看你的内容，VibeLink 加密后服务器也无法解密' },
+              { icon: '🖼️', title: '图片原画质，不压缩', desc: '其他工具会压缩图片，VibeLink 原样传输，画质无损' },
+              { icon: '🌐', title: '纯网页，无需安装', desc: '不依赖客户端，浏览器打开就能传，还可添加快捷方式到手机桌面' },
+            ].map((item) => (
+              <div key={item.title} style={{
+                background: 'var(--white)', borderRadius: 10, padding: '12px 14px',
+                border: '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              }}>
+                <div style={{ fontSize: 22, marginBottom: 4 }}>{item.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 3 }}>{item.title}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="card">
           {!forgotMode && (

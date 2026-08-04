@@ -81,17 +81,27 @@ export default function Settings() {
 
         {/* About */}
         <div className="card" style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>关于 VibeLink</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>关于 VibeLink</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
             手机和电脑之间互传文件总是不方便？VibeLink 就是你的随身传输助手。
           </p>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, marginTop: 8 }}>
-            ✨ 打开浏览器就能用，不用装 App<br />
-            🔒 端到端加密，服务器也看不到你的内容<br />
-            🌐 有网就能传，不挑 WiFi 不挑设备<br />
-            📁 文字、图片、文件，最大 1GB<br />
-            💰 完全免费，源码开放
-          </p>
+          {[
+            { icon: '🔓', title: '独立账号，随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用' },
+            { icon: '🚀', title: '不限大小，跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB、任意网络' },
+            { icon: '📱', title: '全平台支持，不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传，有浏览器就行' },
+            { icon: '🔐', title: '端到端加密，隐私安全', desc: '其他工具可查看你的内容，VibeLink 加密后服务器也无法解密' },
+            { icon: '🖼️', title: '图片原画质，不压缩', desc: '其他工具会压缩图片，VibeLink 原样传输，画质无损' },
+            { icon: '🌐', title: '纯网页，无需安装', desc: '不依赖客户端，浏览器打开就能传，还可添加快捷方式到手机桌面' },
+          ].map((item) => (
+            <div key={item.title} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 12 }}>💰 完全免费，源码开放</p>
         </div>
 
         {/* Support — at bottom */}
