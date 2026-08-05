@@ -80,22 +80,19 @@ router.get('/history', authMiddleware, async (req: AuthRequest, res: Response) =
 router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const after = parseInt(req.query.after as string) || 0;
-    const afterISO = new Date(after * 1000).toISOString();
     const db = getDb();
 
-    // New messages after timestamp
+    // Get latest messages (client deduplicates by client_message_id)
     const result = await db.from('messages')
-      .select('*').eq('user_id', userId).gt('created_at', afterISO).order('created_at', { ascending: true }).limit(20);
-    const messages = (result.data || result) || [];
-    console.log('[Poll] after:', after, 'afterISO:', afterISO, 'got', messages.length, 'new msgs');
+      .select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20);
+    const messages = ((result.data || result) || []).reverse();
 
     // Deleted message IDs for cross-device sync
     const delResult = await db.from('deletions')
       .select('message_id').eq('user_id', userId).order('deleted_at', { ascending: true }).limit(100) as any;
     const rows = delResult.data || delResult || [];
     const deletedIds = rows.map((d: any) => d.message_id);
-    if (deletedIds.length > 0) console.log('[Sync] Poll returns deletedIds:', deletedIds);
+    console.log('[Poll]', messages.length, 'msgs,', deletedIds.length, 'deleted');
     return res.json({ messages, deletedIds });
   } catch (err: any) {
     return res.status(500).json({ error: '获取消息失败' });
