@@ -95,19 +95,21 @@ export default function Settings() {
               { icon: '🌐', title: '纯网页\n无需安装', desc: '浏览器打开就能传，可添加桌面快捷方式', color: '#00BCD4' },
             ].map((item) => (
               <div key={item.icon} style={{
-                background: 'var(--bg)', borderRadius: 10, padding: '12px',
+                background: 'var(--bg)', borderRadius: 10, padding: '10px 12px',
                 border: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
               }}>
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: 3,
                   background: item.color,
                 }} />
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, marginBottom: 6,
-                  background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 15,
-                }}>{item.icon}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 3, lineHeight: 1.4, whiteSpace: 'pre-line' }}>{item.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                  <div style={{
+                    width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+                    background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 13,
+                  }}>{item.icon}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3, whiteSpace: 'pre-line' }}>{item.title}</div>
+                </div>
                 <div style={{ fontSize: 10, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
               </div>
             ))}

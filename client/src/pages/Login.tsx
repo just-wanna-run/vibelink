@@ -222,19 +222,21 @@ export default function Login() {
                 { icon: '🌐', title: '纯网页\n无需安装', desc: '浏览器打开就能传，还可添加快捷方式到手机桌面', color: '#00BCD4' },
               ].map((item) => (
                 <div key={item.icon} style={{
-                  background: 'var(--white)', borderRadius: 12, padding: '14px 12px',
+                  background: 'var(--white)', borderRadius: 12, padding: '12px',
                   border: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
                 }}>
                   <div style={{
                     position: 'absolute', top: 0, left: 0, width: '100%', height: 3,
                     background: item.color,
                   }} />
-                  <div style={{
-                    width: 34, height: 34, borderRadius: 10, marginBottom: 8,
-                    background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 17,
-                  }}>{item.icon}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 4, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{item.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                      background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14,
+                    }}>{item.icon}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3, whiteSpace: 'pre-line' }}>{item.title}</div>
+                  </div>
                   <div style={{ fontSize: 10, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
                 </div>
               ))}
