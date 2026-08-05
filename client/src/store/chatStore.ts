@@ -82,8 +82,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   sendText: async (text: string) => {
     const clientId = generateClientId();
+    const { myDeviceId, addMessage } = get();
 
-    // Track optimistically so WS doesn't duplicate
+    // Optimistic: show text immediately
+    const optimistic: Message = {
+      id: clientId,
+      user_id: '',
+      from_device: myDeviceId,
+      type: 'text',
+      content: text,
+      file_name: null,
+      file_size: null,
+      file_type: null,
+      file_path: null,
+      encrypted_key: null,
+      iv: null,
+      client_message_id: clientId,
+      created_at: Math.floor(Date.now() / 1000),
+      pending: true,
+    };
+    addMessage(optimistic);
+
+    // Track optimistically so poll doesn't duplicate
     sentMessageIds.add(clientId);
 
     try {
@@ -103,16 +123,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
         if (confirmed.content && confirmed.iv) {
           confirmed.content = await decryptContent(confirmed.content, confirmed.iv);
         }
-        set((s) => {
-          // Dedup: don't add if WS already added it
-          if (s.messages.some((m) => m.client_message_id === clientId)) {
-            return s;
-          }
-          return { messages: [...s.messages, { ...confirmed, pending: false }] };
-        });
+        set((s) => ({
+          messages: s.messages.map((m) =>
+            m.client_message_id === clientId ? { ...confirmed, pending: false } : m
+          ),
+        }));
       }
     } catch (err) {
       sentMessageIds.delete(clientId);
+      // Mark optimistic as failed
+      set((s) => ({
+        messages: s.messages.map((m) =>
+          m.client_message_id === clientId ? { ...m, pending: false, content: '发送失败' } : m
+        ),
+      }));
       console.error('[sendText] Failed:', err);
     }
   },
