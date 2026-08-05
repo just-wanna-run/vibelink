@@ -88,6 +88,7 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
     const result = await db.from('messages')
       .select('*').eq('user_id', userId).gt('created_at', afterISO).order('created_at', { ascending: true }).limit(20);
     const messages = (result.data || result) || [];
+    console.log('[Poll] after:', after, 'afterISO:', afterISO, 'got', messages.length, 'new msgs');
 
     // Deleted message IDs for cross-device sync
     const delResult = await db.from('deletions')
