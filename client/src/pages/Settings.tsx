@@ -81,27 +81,38 @@ export default function Settings() {
 
         {/* About */}
         <div className="card" style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>关于 VibeLink</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 2 }}>关于 VibeLink</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
             手机和电脑之间互传文件总是不方便？VibeLink 就是你的随身传输助手。
           </p>
-          {[
-            { icon: '🔓', title: '独立账号，随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用' },
-            { icon: '🚀', title: '不限大小，跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB、任意网络' },
-            { icon: '📱', title: '全平台支持，不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传，有浏览器就行' },
-            { icon: '🔐', title: '端到端加密，隐私安全', desc: '其他工具可查看你的内容，VibeLink 加密后服务器也无法解密' },
-            { icon: '🖼️', title: '图片原画质，不压缩', desc: '其他工具会压缩图片，VibeLink 原样传输，画质无损' },
-            { icon: '🌐', title: '纯网页，无需安装', desc: '不依赖客户端，浏览器打开就能传，还可添加快捷方式到手机桌面' },
-          ].map((item) => (
-            <div key={item.title} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</span>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{item.desc}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { icon: '🔓', title: '独立账号\n随时可用', desc: '其他工具常因安全因素限制登录，账号登录 100% 可用', color: '#5B9BD5' },
+              { icon: '🚀', title: '不限大小\n跨网即传', desc: '其他工具限制 100MB 且需同一网络，支持 1GB 任意网络', color: '#4CAF50' },
+              { icon: '📱', title: '全平台\n不挑系统', desc: 'iOS / 安卓 / Windows / Mac / Linux 互传', color: '#FF9800' },
+              { icon: '🔐', title: '端到端加密\n隐私安全', desc: '服务器也无法解密你的内容，真正安全', color: '#9C27B0' },
+              { icon: '🖼️', title: '图片原画质\n不压缩', desc: '原样传输，画质无损，不缩图', color: '#E91E63' },
+              { icon: '🌐', title: '纯网页\n无需安装', desc: '浏览器打开就能传，可添加桌面快捷方式', color: '#00BCD4' },
+            ].map((item) => (
+              <div key={item.icon} style={{
+                background: 'var(--bg)', borderRadius: 10, padding: '12px',
+                border: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: 3,
+                  background: item.color,
+                }} />
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8, marginBottom: 6,
+                  background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 15,
+                }}>{item.icon}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 3, lineHeight: 1.4, whiteSpace: 'pre-line' }}>{item.title}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
               </div>
-            </div>
-          ))}
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 12 }}>💰 完全免费，源码开放</p>
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 14 }}>💰 完全免费，源码开放</p>
         </div>
 
         {/* Support — at bottom */}

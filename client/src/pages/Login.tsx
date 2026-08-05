@@ -113,28 +113,6 @@ export default function Login() {
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{forgotMode ? '重置密码' : '更自由的跨设备文件传输'}</p>
         </div>
 
-        {!forgotMode && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-            {[
-              { icon: '🔓', title: '独立账号，随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用' },
-              { icon: '🚀', title: '不限大小，跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB、任意网络' },
-              { icon: '📱', title: '全平台支持，不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传，有浏览器就行' },
-              { icon: '🔐', title: '端到端加密，隐私安全', desc: '其他工具可查看你的内容，VibeLink 加密后服务器也无法解密' },
-              { icon: '🖼️', title: '图片原画质，不压缩', desc: '其他工具会压缩图片，VibeLink 原样传输，画质无损' },
-              { icon: '🌐', title: '纯网页，无需安装', desc: '不依赖客户端，浏览器打开就能传，还可添加快捷方式到手机桌面' },
-            ].map((item) => (
-              <div key={item.title} style={{
-                background: 'var(--white)', borderRadius: 10, padding: '12px 14px',
-                border: '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-              }}>
-                <div style={{ fontSize: 22, marginBottom: 4 }}>{item.icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 3 }}>{item.title}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="card">
           {!forgotMode && (
             <div className="tabs">
@@ -227,7 +205,43 @@ export default function Login() {
           )}
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: 'var(--text-secondary)' }}>
+        {!forgotMode && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 14 }}>
+              <div style={{ height: 1, flex: 1, background: 'linear-gradient(to right, transparent, var(--border))' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>为什么选择 VibeLink</span>
+              <div style={{ height: 1, flex: 1, background: 'linear-gradient(to left, transparent, var(--border))' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {[
+                { icon: '🔓', title: '独立账号\n随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用', color: '#5B9BD5' },
+                { icon: '🚀', title: '不限大小\n跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB、任意网络', color: '#4CAF50' },
+                { icon: '📱', title: '全平台\n不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传', color: '#FF9800' },
+                { icon: '🔐', title: '端到端加密\n隐私安全', desc: '服务器也无法解密你的内容，真正安全', color: '#9C27B0' },
+                { icon: '🖼️', title: '图片原画质\n不压缩', desc: '原样传输，画质无损，不缩图', color: '#E91E63' },
+                { icon: '🌐', title: '纯网页\n无需安装', desc: '浏览器打开就能传，还可添加快捷方式到手机桌面', color: '#00BCD4' },
+              ].map((item) => (
+                <div key={item.icon} style={{
+                  background: 'var(--white)', borderRadius: 12, padding: '14px 12px',
+                  border: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
+                }}>
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: 3,
+                    background: item.color,
+                  }} />
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10, marginBottom: 8,
+                    background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 17,
+                  }}>{item.icon}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 4, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{item.title}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--text-secondary)' }}>
           🔒 所有内容端到端加密，服务器无法查看你的数据
         </p>
       </div>
