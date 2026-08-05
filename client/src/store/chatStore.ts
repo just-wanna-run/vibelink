@@ -63,6 +63,11 @@ function getLocalDeviceId(): string {
 
 // Track our own messages by client_message_id
 export const sentMessageIds = new Set<string>();
+// Track locally deleted message IDs (prevent poll from re-adding during race)
+const locallyDeletedIds = new Set<string>();
+export function markLocallyDeleted(clientMessageIds: string[]) {
+  clientMessageIds.forEach((id) => locallyDeletedIds.add(id));
+}
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
@@ -180,12 +185,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   deleteMessage: async (id: string) => {
+    // Track the deleted message to prevent poll from re-adding it
+    const msg = get().messages.find((m) => m.id === id);
+    if (msg?.client_message_id) {
+      locallyDeletedIds.add(msg.client_message_id);
+    }
     // Optimistic delete
     set((s) => ({ messages: s.messages.filter((m) => m.id !== id) }));
     try {
       await api.delete(`/messages/${id}`);
     } catch {
-      // On failure, reload
       get().loadHistory();
     }
   },
@@ -221,7 +230,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       if (newMessages.length > 0) {
         set((s) => {
           const existing = new Set(s.messages.map((m) => m.client_message_id));
-          const toAdd = newMessages.filter((m) => !existing.has(m.client_message_id) && !sentMessageIds.has(m.client_message_id));
+          const toAdd = newMessages.filter((m) => !existing.has(m.client_message_id) && !sentMessageIds.has(m.client_message_id) && !locallyDeletedIds.has(m.client_message_id));
           if (toAdd.length === 0) return s;
           return { messages: [...s.messages, ...toAdd] };
         });

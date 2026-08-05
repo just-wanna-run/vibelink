@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useChatStore } from '../store/chatStore';
+import { useChatStore, markLocallyDeleted } from '../store/chatStore';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
 import api from '../services/api';
@@ -35,8 +35,11 @@ export default function History() {
   const handleBatchDelete = async () => {
     if (selected.size === 0) return;
     if (!confirm(`确定删除选中的 ${selected.size} 条记录吗？`)) return;
+    const ids = [...selected];
+    const clientMsgIds = messages.filter((m) => selected.has(m.id)).map((m) => m.client_message_id).filter(Boolean);
+    markLocallyDeleted(clientMsgIds);
     try {
-      await api.post('/messages/batch-delete', { ids: [...selected] });
+      await api.post('/messages/batch-delete', { ids });
       useChatStore.setState((s) => ({ messages: s.messages.filter((m) => !selected.has(m.id)) }));
       setSelected(new Set()); setSelectMode(false);
     } catch { alert('删除失败'); }
