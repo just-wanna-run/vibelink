@@ -137,11 +137,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       }
 
-      set((s) => ({
-        messages: [...historyMessages, ...s.messages],
-        hasMore: historyMessages.length >= 50,
-        isLoadingHistory: false,
-      }));
+      set((s) => {
+        const existingIds = new Set(s.messages.map((m) => m.id));
+        const newMessages = historyMessages.filter((m) => !existingIds.has(m.id));
+        return {
+          messages: [...newMessages, ...s.messages],
+          hasMore: historyMessages.length >= 50,
+          isLoadingHistory: false,
+        };
+      });
     } catch {
       set({ isLoadingHistory: false });
     }
