@@ -90,11 +90,11 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
     const messages = result.data || result;
 
     // Deleted message IDs for cross-device sync
-    const afterDate = new Date(after * 1000).toISOString();
     const delResult = await db.from('deletions')
       .select('message_id').eq('user_id', userId).order('deleted_at', { ascending: true }).limit(100) as any;
-    const deletedIds = (delResult.data || delResult || []).map((d: any) => d.message_id);
-
+    const rows = delResult.data || delResult || [];
+    const deletedIds = rows.map((d: any) => d.message_id);
+    if (deletedIds.length > 0) console.log('[Sync] Poll returns deletedIds:', deletedIds);
     return res.json({ messages: messages || [], deletedIds });
   } catch (err: any) {
     return res.status(500).json({ error: '获取消息失败' });
@@ -119,7 +119,12 @@ router.post('/batch-delete', authMiddleware, async (req: AuthRequest, res: Respo
     await db.from('messages').delete().eq('user_id', userId).in('id', ids);
     // Record deletions for cross-device sync
     for (const id of ids) {
-      await db.from('deletions').insert({ user_id: userId, message_id: id });
+      try {
+        await db.from('deletions').insert({ user_id: userId, message_id: id });
+        console.log('[Sync] Deletion recorded:', id);
+      } catch (e: any) {
+        console.error('[Sync] Failed to record deletion:', id, e.message);
+      }
     }
     return res.json({ message: '已删除' });
   } catch (err: any) {
@@ -161,7 +166,12 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
       if (fs.existsSync(fp)) fs.unlinkSync(fp);
     }
     await db.from('messages').delete().eq('id', messageId);
-    await db.from('deletions').insert({ user_id: userId, message_id: messageId });
+    try {
+      await db.from('deletions').insert({ user_id: userId, message_id: messageId });
+      console.log('[Sync] Deletion recorded:', messageId);
+    } catch (e: any) {
+      console.error('[Sync] Failed to record deletion:', messageId, e.message);
+    }
     return res.json({ message: '已删除' });
   } catch (err: any) {
     return res.status(500).json({ error: '删除失败' });
