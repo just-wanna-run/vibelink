@@ -37,6 +37,15 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS deletions (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message_id UUID NOT NULL,
+  deleted_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_deletions_user_time ON deletions(user_id, deleted_at DESC);
+
 CREATE TABLE IF NOT EXISTS feedbacks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   message TEXT NOT NULL,

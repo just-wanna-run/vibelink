@@ -82,11 +82,20 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const after = parseInt(req.query.after as string) || 0;
     const db = getDb();
+
+    // New messages
     let query = db.from('messages')
       .select('*').eq('user_id', userId).order('created_at', { ascending: true }).limit(20);
     const result = await query;
     const messages = result.data || result;
-    return res.json({ messages: messages || [] });
+
+    // Deleted message IDs for cross-device sync
+    const afterDate = new Date(after * 1000).toISOString();
+    const delResult = await db.from('deletions')
+      .select('message_id').eq('user_id', userId).order('deleted_at', { ascending: true }).limit(100) as any;
+    const deletedIds = (delResult.data || delResult || []).map((d: any) => d.message_id);
+
+    return res.json({ messages: messages || [], deletedIds });
   } catch (err: any) {
     return res.status(500).json({ error: '获取消息失败' });
   }
@@ -108,6 +117,10 @@ router.post('/batch-delete', authMiddleware, async (req: AuthRequest, res: Respo
       }
     }
     await db.from('messages').delete().eq('user_id', userId).in('id', ids);
+    // Record deletions for cross-device sync
+    for (const id of ids) {
+      await db.from('deletions').insert({ user_id: userId, message_id: id });
+    }
     return res.json({ message: '已删除' });
   } catch (err: any) {
     return res.status(500).json({ error: '删除失败' });
@@ -119,10 +132,14 @@ router.delete('/all', authMiddleware, async (req: AuthRequest, res: Response) =>
   try {
     const userId = req.userId!;
     const db = getDb();
-    const { data: messages } = await db.from('messages').select('file_path').eq('user_id', userId).not('file_path', 'is', null) as any;
-    for (const msg of (messages || [])) {
-      const fp = path.join(UPLOAD_DIR, msg.file_path);
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    // Get all messages for this user (for file cleanup + sync tracking)
+    const { data: allMessages } = await db.from('messages').select('id,file_path').eq('user_id', userId) as any;
+    for (const msg of (allMessages || [])) {
+      if (msg.file_path) {
+        const fp = path.join(UPLOAD_DIR, msg.file_path);
+        if (fs.existsSync(fp)) fs.unlinkSync(fp);
+      }
+      await db.from('deletions').insert({ user_id: userId, message_id: msg.id });
     }
     await db.from('messages').delete().eq('user_id', userId);
     return res.json({ message: '已清空' });
@@ -144,6 +161,7 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
       if (fs.existsSync(fp)) fs.unlinkSync(fp);
     }
     await db.from('messages').delete().eq('id', messageId);
+    await db.from('deletions').insert({ user_id: userId, message_id: messageId });
     return res.json({ message: '已删除' });
   } catch (err: any) {
     return res.status(500).json({ error: '删除失败' });

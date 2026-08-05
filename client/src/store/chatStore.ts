@@ -199,6 +199,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const { data } = await api.get('/messages/poll', { params: { after } });
       const newMessages: Message[] = data.messages || [];
+      const deletedIds: string[] = data.deletedIds || [];
+
+      // Remove deleted messages
+      if (deletedIds.length > 0) {
+        set((s) => {
+          const deletedSet = new Set(deletedIds);
+          const remaining = s.messages.filter((m) => !deletedSet.has(m.id));
+          if (remaining.length === s.messages.length) return s;
+          return { messages: remaining };
+        });
+      }
+
       // Decrypt incoming messages
       for (const msg of newMessages) {
         fixMessage(msg);
