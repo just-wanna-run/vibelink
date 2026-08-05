@@ -81,13 +81,13 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
     const after = parseInt(req.query.after as string) || 0;
+    const afterISO = new Date(after * 1000).toISOString();
     const db = getDb();
 
-    // New messages
-    let query = db.from('messages')
-      .select('*').eq('user_id', userId).order('created_at', { ascending: true }).limit(20);
-    const result = await query;
-    const messages = result.data || result;
+    // New messages after timestamp
+    const result = await db.from('messages')
+      .select('*').eq('user_id', userId).gt('created_at', afterISO).order('created_at', { ascending: true }).limit(20);
+    const messages = (result.data || result) || [];
 
     // Deleted message IDs for cross-device sync
     const delResult = await db.from('deletions')
@@ -95,7 +95,7 @@ router.get('/poll', authMiddleware, async (req: AuthRequest, res: Response) => {
     const rows = delResult.data || delResult || [];
     const deletedIds = rows.map((d: any) => d.message_id);
     if (deletedIds.length > 0) console.log('[Sync] Poll returns deletedIds:', deletedIds);
-    return res.json({ messages: messages || [], deletedIds });
+    return res.json({ messages, deletedIds });
   } catch (err: any) {
     return res.status(500).json({ error: '获取消息失败' });
   }
