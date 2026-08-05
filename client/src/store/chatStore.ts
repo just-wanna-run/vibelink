@@ -97,14 +97,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
         clientMessageId: clientId,
       });
 
-      // Server returns the confirmed message — add it to state
+      // Server returns the confirmed message — decrypt before storing
       if (res.data.message && !res.data.duplicate) {
+        const confirmed = fixMessage(res.data.message);
+        if (confirmed.content && confirmed.iv) {
+          confirmed.content = await decryptContent(confirmed.content, confirmed.iv);
+        }
         set((s) => {
           // Dedup: don't add if WS already added it
           if (s.messages.some((m) => m.client_message_id === clientId)) {
             return s;
           }
-          return { messages: [...s.messages, { ...fixMessage(res.data.message), pending: false }] };
+          return { messages: [...s.messages, { ...confirmed, pending: false }] };
         });
       }
     } catch (err) {
