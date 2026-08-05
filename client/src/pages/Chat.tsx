@@ -147,35 +147,35 @@ export default function Chat() {
     return () => clearInterval(interval);
   }, [pollNewMessages]);
 
-  // Track previous message count for auto-scroll detection
-  const prevCountRef = useRef(messages.length);
+  // Track previous newest message for auto-scroll detection
+  const prevNewestRef = useRef<number>(0);
 
   // Load initial history, then scroll to bottom
   useEffect(() => {
     loadHistory().then(() => {
-      // Scroll to bottom after initial load
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
       }, 100);
     });
   }, []);
 
-  // Auto-scroll to bottom when a new message is added
+  // Auto-scroll to bottom when new messages arrive (only if user is near bottom)
   useEffect(() => {
-    const isNewMessage = messages.length > prevCountRef.current;
-    prevCountRef.current = messages.length;
-
-    if (isNewMessage && messages.length > 0) {
-      // Check if the new message is recent (within last 2 seconds — i.e., live)
-      const lastMsg = messages[messages.length - 1];
-      const now = Math.floor(Date.now() / 1000);
-      if (now - lastMsg.created_at < 5) {
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 50);
+    if (messages.length === 0) return;
+    const newest = messages[messages.length - 1].created_at;
+    if (newest > prevNewestRef.current && prevNewestRef.current > 0) {
+      const container = messagesContainerRef.current;
+      if (container) {
+        const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        if (nearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 50);
+        }
       }
     }
-  }, [messages.length]);
+    prevNewestRef.current = newest;
+  }, [messages]);
 
   // Scroll handling for loading more history
   const handleScroll = () => {
