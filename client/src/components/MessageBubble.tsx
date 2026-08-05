@@ -38,6 +38,26 @@ export default function MessageBubble({ message, onDelete }: Props) {
   const { type, content, file_name, file_size, file_path, pending } = message;
   const [downloading, setDownloading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!content) return;
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = content;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
 
   const handleDownload = async () => {
     if (!file_path || !file_name) return;
@@ -123,20 +143,50 @@ export default function MessageBubble({ message, onDelete }: Props) {
       </div>
       )}
 
-      {/* Delete button */}
+      {/* Action bar */}
       {!pending && (
-        <button
-          onClick={() => onDelete(message.id)}
-          style={{
-            background: 'none', border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer', fontSize: 12,
-            opacity: 0.5, marginTop: 2, padding: '0 4px',
-          }}
-          title="删除"
-        >
-          🗑
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+          {type === 'text' && content && (
+            <button onClick={handleCopy} title={copied ? '已复制' : '复制'}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '2px 4px', borderRadius: 4, lineHeight: 1,
+                color: copied ? 'var(--success)' : 'var(--text-secondary)',
+                opacity: copied ? 1 : 0.35, transition: 'opacity 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => { if (!copied) (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}
+              onMouseLeave={(e) => { if (!copied) (e.currentTarget as HTMLElement).style.opacity = '0.35'; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {copied ? (
+                  <polyline points="20 6 9 17 4 12" />
+                ) : (
+                  <>
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </>
+                )}
+              </svg>
+            </button>
+          )}
+          <button onClick={() => onDelete(message.id)} title="删除"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '2px 4px', borderRadius: 4, lineHeight: 1,
+              color: 'var(--text-secondary)', opacity: 0.35,
+              transition: 'opacity 0.15s, color 0.15s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.7'; (e.currentTarget as HTMLElement).style.color = 'var(--danger)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.35'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </button>
+        </div>
       )}
     </div>
   );
