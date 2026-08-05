@@ -333,7 +333,7 @@ export default function Chat() {
           </div>
         )}
 
-        {!hasMore && messages.length > 0 && (
+        {!hasMore && messages.length > 0 && !isLoadingHistory && (
           <div style={{ textAlign: 'center', padding: 12, color: 'var(--text-secondary)', fontSize: 12 }}>
             — 已加载全部记录 —
           </div>
