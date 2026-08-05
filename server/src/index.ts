@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
@@ -16,6 +17,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // ---- Middleware ----
 app.use(cors());
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,7 +60,16 @@ app.get('/api/health', (_req, res) => {
 if (isProduction) {
   const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
   if (fs.existsSync(clientDist)) {
-    app.use(express.static(clientDist));
+    // Static assets with aggressive caching (Vite generates hashed filenames)
+    app.use(express.static(clientDist, {
+      maxAge: '30d',
+      setHeaders: (res, filePath) => {
+        // HTML and service worker: no cache (may change between deploys)
+        if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+        }
+      },
+    }));
     app.get('*', (_req, res) => { res.sendFile(path.join(clientDist, 'index.html')); });
     console.log('[Server] Serving frontend from', clientDist);
   }
