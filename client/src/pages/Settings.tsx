@@ -140,20 +140,42 @@ function DownloadModeSetting() {
   return (
     <div className="card" style={{ marginBottom: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
-            {mode === 'picker' ? '选文件夹 — 弹窗选择保存位置' : '浏览器下载 — 直接下载到默认位置'}
+            当前：<strong style={{ color: 'var(--primary)' }}>{mode === 'picker' ? '选文件夹保存' : '浏览器直接下载'}</strong>
           </p>
         </div>
-        <button onClick={toggleMode} style={{
-          padding: '6px 14px', fontSize: 13, borderRadius: 8, cursor: 'pointer',
-          border: '1.5px solid var(--primary)', background: mode === 'picker' ? 'var(--primary)' : 'var(--white)',
-          color: mode === 'picker' ? '#fff' : 'var(--primary)',
+        <div style={{
+          display: 'flex', background: 'var(--border)', borderRadius: 10, padding: 3, gap: 2,
         }}>
-          {mode === 'picker' ? '选文件夹' : '浏览器下载'}
-        </button>
+          <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'picker'); setMode('picker'); }}
+            style={{
+              padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: mode === 'picker' ? 'var(--primary)' : 'transparent',
+              color: mode === 'picker' ? '#fff' : 'var(--text-secondary)',
+              fontWeight: mode === 'picker' ? 600 : 400,
+              transition: 'all 0.2s',
+            }}>
+            选文件夹
+          </button>
+          <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'browser'); setMode('browser'); }}
+            style={{
+              padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: mode === 'browser' ? 'var(--primary)' : 'transparent',
+              color: mode === 'browser' ? '#fff' : 'var(--text-secondary)',
+              fontWeight: mode === 'browser' ? 600 : 400,
+              transition: 'all 0.2s',
+            }}>
+            浏览器下载
+          </button>
+        </div>
       </div>
+      {mode === 'picker' && (
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10, lineHeight: 1.6, background: '#FFF8E1', padding: '8px 12px', borderRadius: 6 }}>
+          ⚠️ 提示：此模式无法保存到桌面等系统文件夹。如需保存到桌面，请切换到「浏览器下载」模式。
+        </p>
+      )}
     </div>
   );
 }
