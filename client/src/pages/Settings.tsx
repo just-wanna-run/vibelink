@@ -40,6 +40,9 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Download mode */}
+        <DownloadModeSetting />
+
         {/* Dark mode */}
         <div className="card" style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -121,6 +124,37 @@ export default function Settings() {
         <SupportSection />
       </div>
     </Layout>
+  );
+}
+
+function DownloadModeSetting() {
+  const DOWNLOAD_KEY = 'vibelink_download_mode';
+  const [mode, setMode] = useState(localStorage.getItem(DOWNLOAD_KEY) || 'picker');
+
+  const toggleMode = () => {
+    const next = mode === 'picker' ? 'browser' : 'picker';
+    localStorage.setItem(DOWNLOAD_KEY, next);
+    setMode(next);
+  };
+
+  return (
+    <div className="card" style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+            {mode === 'picker' ? '选文件夹 — 弹窗选择保存位置' : '浏览器下载 — 直接下载到默认位置'}
+          </p>
+        </div>
+        <button onClick={toggleMode} style={{
+          padding: '6px 14px', fontSize: 13, borderRadius: 8, cursor: 'pointer',
+          border: '1.5px solid var(--primary)', background: mode === 'picker' ? 'var(--primary)' : 'var(--white)',
+          color: mode === 'picker' ? '#fff' : 'var(--primary)',
+        }}>
+          {mode === 'picker' ? '选文件夹' : '浏览器下载'}
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -80,31 +80,33 @@ export default function Chat() {
       return (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
     };
 
+    const downloadMode = localStorage.getItem('vibelink_download_mode') || 'picker';
+
     // Try File System Access API (choose folder)
-    let triedApi = false;
-    try {
-      const dirHandle = await (window as any).showDirectoryPicker({ startIn: 'downloads' });
-      triedApi = true;
-      setDownloadProgress({ current: 0, total: downloadable.length });
-      let saved = 0;
-      for (let i = 0; i < downloadable.length; i++) {
-        try {
-          const blob = await fetchBlob(downloadable[i]);
-          const fh = await dirHandle.getFileHandle(getFileName(downloadable[i], i), { create: true });
-          const w = await fh.createWritable(); await w.write(blob); await w.close();
-          saved++;
-        } catch {}
-        setDownloadProgress({ current: i + 1, total: downloadable.length });
+    if (downloadMode === 'picker') {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker();
+        setDownloadProgress({ current: 0, total: downloadable.length });
+        let saved = 0;
+        for (let i = 0; i < downloadable.length; i++) {
+          try {
+            const blob = await fetchBlob(downloadable[i]);
+            const fh = await dirHandle.getFileHandle(getFileName(downloadable[i], i), { create: true });
+            const w = await fh.createWritable(); await w.write(blob); await w.close();
+            saved++;
+          } catch {}
+          setDownloadProgress({ current: i + 1, total: downloadable.length });
+        }
+        setDownloadProgress(null);
+        setSelected(new Set()); setSelectMode(false);
+        if (saved > 0) alert(`已保存 ${saved} 个文件`);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') { return; }
       }
-      setDownloadProgress(null);
-      setSelected(new Set()); setSelectMode(false);
-      if (saved > 0) alert(`已保存 ${saved} 个文件`);
-      return;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') { return; }
     }
 
-    // Fallback: browser download
+    // Browser download
     setDownloadProgress({ current: 0, total: downloadable.length });
     let saved = 0;
     for (let i = 0; i < downloadable.length; i++) {

@@ -55,26 +55,30 @@ export default function History() {
       return (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${t}` } })).blob();
     };
 
+    const downloadMode = localStorage.getItem('vibelink_download_mode') || 'picker';
+
     // Try File System Access API (choose folder)
-    try {
-      const dirHandle = await (window as any).showDirectoryPicker({ startIn: 'downloads' });
-      let saved = 0;
-      for (let i = 0; i < dl.length; i++) {
-        try {
-          const blob = await fetchBlob(dl[i]);
-          const fh = await dirHandle.getFileHandle(getFileName(dl[i], i), { create: true });
-          const w = await fh.createWritable(); await w.write(blob); await w.close();
-          saved++;
-        } catch {}
+    if (downloadMode === 'picker') {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker();
+        let saved = 0;
+        for (let i = 0; i < dl.length; i++) {
+          try {
+            const blob = await fetchBlob(dl[i]);
+            const fh = await dirHandle.getFileHandle(getFileName(dl[i], i), { create: true });
+            const w = await fh.createWritable(); await w.write(blob); await w.close();
+            saved++;
+          } catch {}
+        }
+        setSelected(new Set()); setSelectMode(false);
+        if (saved > 0) alert(`已保存 ${saved} 个文件`);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
       }
-      setSelected(new Set()); setSelectMode(false);
-      if (saved > 0) alert(`已保存 ${saved} 个文件`);
-      return;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
     }
 
-    // Fallback: browser download
+    // Browser download
     let saved = 0;
     for (let i = 0; i < dl.length; i++) {
       try {
