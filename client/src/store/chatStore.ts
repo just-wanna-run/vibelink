@@ -212,9 +212,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Remove deleted messages
       if (deletedIds.length > 0) {
+        console.log('[Client] Processing deletedIds:', deletedIds);
         set((s) => {
           const deletedSet = new Set(deletedIds);
           const remaining = s.messages.filter((m) => !deletedSet.has(m.id));
+          console.log('[Client] Removed', s.messages.length - remaining.length, 'messages');
           if (remaining.length === s.messages.length) return s;
           return { messages: remaining };
         });
