@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore, markLocallyDeleted } from '../store/chatStore';
+import { getDefaultDir } from './Settings';
 import api from '../services/api';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
@@ -82,10 +83,13 @@ export default function Chat() {
 
     const downloadMode = localStorage.getItem('vibelink_download_mode') || 'picker';
 
-    // Try File System Access API (choose folder)
+    // Try File System Access API (choose folder or use default)
     if (downloadMode === 'picker') {
       try {
-        const dirHandle = await (window as any).showDirectoryPicker();
+        let dirHandle = await getDefaultDir();
+        if (!dirHandle) {
+          dirHandle = await (window as any).showDirectoryPicker();
+        }
         setDownloadProgress({ current: 0, total: downloadable.length });
         let saved = 0;
         for (let i = 0; i < downloadable.length; i++) {

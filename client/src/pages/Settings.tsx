@@ -127,20 +127,86 @@ export default function Settings() {
   );
 }
 
+function downloadDirStore() {
+  const DB = 'vibelink_fs';
+  const STORE = 'handles';
+  return {
+    async get(): Promise<any> {
+      return new Promise((resolve, reject) => {
+        const r = indexedDB.open(DB);
+        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onsuccess = () => {
+          const db = r.result;
+          const tx = db.transaction(STORE, 'readonly');
+          const req = tx.objectStore(STORE).get('dir');
+          req.onsuccess = () => resolve(req.result?.handle || null);
+          req.onerror = reject;
+        };
+        r.onerror = reject;
+      });
+    },
+    async set(handle: any): Promise<void> {
+      return new Promise((resolve, reject) => {
+        const r = indexedDB.open(DB);
+        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onsuccess = () => {
+          const db = r.result;
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).put({ id: 'dir', handle, name: handle.name });
+          tx.oncomplete = () => resolve();
+          tx.onerror = reject;
+        };
+        r.onerror = reject;
+      });
+    },
+    async getDirName(): Promise<string> {
+      return new Promise((resolve) => {
+        const r = indexedDB.open(DB);
+        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onsuccess = () => {
+          const db = r.result;
+          const tx = db.transaction(STORE, 'readonly');
+          const req = tx.objectStore(STORE).get('dir');
+          req.onsuccess = () => resolve(req.result?.name || '');
+          req.onerror = () => resolve('');
+        };
+        r.onerror = () => resolve('');
+      });
+    },
+  };
+}
+
+export async function getDefaultDir(): Promise<any> {
+  const handle = await downloadDirStore().get();
+  if (!handle) return null;
+  // Verify permission — request it if needed
+  const opts: any = { mode: 'readwrite' };
+  try {
+    if ((await handle.queryPermission(opts)) === 'granted') return handle;
+    if ((await handle.requestPermission(opts)) === 'granted') return handle;
+    return null;
+  } catch { return null; }
+}
+
 function DownloadModeSetting() {
   const DOWNLOAD_KEY = 'vibelink_download_mode';
   const [mode, setMode] = useState(localStorage.getItem(DOWNLOAD_KEY) || 'picker');
   const [showTip, setShowTip] = useState(false);
+  const [dirName, setDirName] = useState('');
 
-  const toggleMode = () => {
-    const next = mode === 'picker' ? 'browser' : 'picker';
-    localStorage.setItem(DOWNLOAD_KEY, next);
-    setMode(next);
+  useState(() => { downloadDirStore().getDirName().then(setDirName); });
+
+  const handlePickDir = async () => {
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker();
+      await downloadDirStore().set(dirHandle);
+      setDirName(dirHandle.name);
+    } catch {}
   };
 
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
@@ -172,6 +238,11 @@ function DownloadModeSetting() {
               </span>
             )}
           </p>
+          {mode === 'picker' && dirName && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+              默认目录：{dirName}
+            </p>
+          )}
         </div>
         <div style={{
           display: 'flex', background: 'var(--border)', borderRadius: 10, padding: 3, gap: 2,
@@ -198,6 +269,11 @@ function DownloadModeSetting() {
           </button>
         </div>
       </div>
+      {mode === 'picker' && (
+        <button onClick={handlePickDir} className="btn btn-outline" style={{ fontSize: 13, padding: '7px 16px' }}>
+          {dirName ? '更改默认目录' : '设置默认下载目录'}
+        </button>
+      )}
     </div>
   );
 }
