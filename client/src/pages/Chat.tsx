@@ -81,13 +81,16 @@ export default function Chat() {
       return (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
     };
 
-    const downloadMode = localStorage.getItem('vibelink_download_mode') || 'picker';
+    const downloadMode = localStorage.getItem('vibelink_download_mode') || 'defaultDir';
 
-    // Try File System Access API (choose folder or use default)
-    if (downloadMode === 'picker') {
+    // File System Access API
+    if (downloadMode !== 'browser') {
       try {
-        let dirHandle = await getDefaultDir();
-        if (!dirHandle) {
+        let dirHandle: any;
+        if (downloadMode === 'defaultDir') {
+          dirHandle = await getDefaultDir();
+          if (!dirHandle) dirHandle = await (window as any).showDirectoryPicker();
+        } else {
           dirHandle = await (window as any).showDirectoryPicker();
         }
         setDownloadProgress({ current: 0, total: downloadable.length });
