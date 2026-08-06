@@ -34,9 +34,25 @@ export default function Settings() {
         {/* Account info */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>账号信息</h2>
-          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-            {user?.email && <p style={{ marginBottom: 4 }}>📧 邮箱：{user.email}</p>}
-            {user?.phone && <p style={{ marginBottom: 4 }}>📱 手机：{user.phone}</p>}
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {user?.email && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 4L12 13L2 4" />
+                </svg>
+                {user.email}
+              </div>
+            )}
+            {user?.phone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                  <line x1="12" y1="18" x2="12.01" y2="18" />
+                </svg>
+                {user.phone}
+              </div>
+            )}
           </div>
         </div>
 
