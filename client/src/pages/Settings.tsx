@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -194,7 +194,7 @@ function DownloadModeSetting() {
   const [showTip, setShowTip] = useState(false);
   const [dirName, setDirName] = useState('');
 
-  useState(() => { downloadDirStore().getDirName().then(setDirName); });
+  useEffect(() => { downloadDirStore().getDirName().then(setDirName); }, []);
 
   const handlePickDir = async () => {
     try {
