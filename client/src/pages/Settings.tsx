@@ -172,7 +172,7 @@ function DownloadModeSetting() {
         </div>
       </div>
       {mode === 'picker' && (
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10, lineHeight: 1.6, background: '#FFF8E1', padding: '8px 12px', borderRadius: 6 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10, lineHeight: 1.6, background: 'var(--primary-light)', padding: '8px 12px', borderRadius: 6 }}>
           ⚠️ 提示：此模式无法保存到桌面等系统文件夹。如需保存到桌面，请切换到「浏览器下载」模式。
         </p>
       )}
