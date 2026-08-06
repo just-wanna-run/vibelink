@@ -221,94 +221,67 @@ function DownloadModeSetting() {
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      {/* Desktop layout */}
-      <div className="desktop-only">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
-              当前：<strong style={{ color: 'var(--primary)' }}>{mode === 'picker' ? '选文件夹保存' : '浏览器直接下载'}</strong>
-              {mode === 'picker' && (
-                <span style={{ position: 'relative', display: 'inline-block', marginLeft: 6, verticalAlign: 'middle' }}>
-                  <span
-                    onMouseEnter={() => setShowTip(true)}
-                    onMouseLeave={() => setShowTip(false)}
-                    onClick={() => setShowTip(!showTip)}
-                    style={{ display: 'inline-flex', cursor: 'pointer', opacity: 0.5 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                  </span>
-                  {showTip && (
-                    <span style={{
-                      position: 'absolute', bottom: '100%', left: '50%',
-                      transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px',
-                      background: '#333', color: '#fff', fontSize: 11, borderRadius: 6,
-                      whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none',
-                      lineHeight: 1.5, fontWeight: 400,
-                    }}>
-                      此模式无法保存到桌面等系统文件夹
-                    </span>
-                  )}
+    <div className="card desktop-only" style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 16 }}>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+            当前：<strong style={{ color: 'var(--primary)' }}>{mode === 'picker' ? '选文件夹保存' : '浏览器直接下载'}</strong>
+            {mode === 'picker' && (
+              <span style={{ position: 'relative', display: 'inline-block', marginLeft: 6, verticalAlign: 'middle' }}>
+                <span
+                  onMouseEnter={() => setShowTip(true)}
+                  onMouseLeave={() => setShowTip(false)}
+                  onClick={() => setShowTip(!showTip)}
+                  style={{ display: 'inline-flex', cursor: 'pointer', opacity: 0.5 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
                 </span>
+                {showTip && (
+                  <span style={{
+                    position: 'absolute', bottom: '100%', left: '50%',
+                    transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px',
+                    background: '#333', color: '#fff', fontSize: 11, borderRadius: 6,
+                    whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none',
+                    lineHeight: 1.5, fontWeight: 400,
+                  }}>
+                    此模式无法保存到桌面等系统文件夹
+                  </span>
+                )}
+              </span>
+            )}
+          </p>
+          {mode === 'picker' && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
+              {dirName ? (
+                <>默认下载目录：{dirName} <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0, marginLeft: 8 }}>更改</button></>
+              ) : (
+                <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>设置默认下载目录</button>
               )}
             </p>
-            {mode === 'picker' && (
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
-                {dirName ? (
-                  <>默认下载目录：{dirName} <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0, marginLeft: 8 }}>更改</button></>
-                ) : (
-                  <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>设置默认下载目录</button>
-                )}
-              </p>
-            )}
-          </div>
-          <div style={{
-            display: 'flex', background: 'var(--border)', borderRadius: 10, padding: 3, gap: 2, flexShrink: 0,
-          }}>
-            <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'picker'); setMode('picker'); }}
-              style={{
-                padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: mode === 'picker' ? 'var(--primary)' : 'transparent',
-                color: mode === 'picker' ? '#fff' : 'var(--text-secondary)',
-                fontWeight: mode === 'picker' ? 600 : 400, transition: 'all 0.2s',
-              }}>选文件夹</button>
-            <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'browser'); setMode('browser'); }}
-              style={{
-                padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: mode === 'browser' ? 'var(--primary)' : 'transparent',
-                color: mode === 'browser' ? '#fff' : 'var(--text-secondary)',
-                fontWeight: mode === 'browser' ? 600 : 400, transition: 'all 0.2s',
-              }}>浏览器下载</button>
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* Mobile layout */}
-      <div className="mobile-only">
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>下载方式</h2>
-        <div style={{ display: 'flex', background: 'var(--border)', borderRadius: 10, padding: 3, gap: 2, marginBottom: 8 }}>
+        <div style={{
+          display: 'flex', background: 'var(--border)', borderRadius: 10, padding: 3, gap: 2, flexShrink: 0,
+        }}>
           <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'picker'); setMode('picker'); }}
             style={{
-              flex: 1, padding: '8px 12px', fontSize: 12, borderRadius: 8, border: 'none', cursor: 'pointer',
+              padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
               background: mode === 'picker' ? 'var(--primary)' : 'transparent',
               color: mode === 'picker' ? '#fff' : 'var(--text-secondary)',
               fontWeight: mode === 'picker' ? 600 : 400, transition: 'all 0.2s',
-            }}>选文件夹保存</button>
+            }}>选文件夹</button>
           <button onClick={() => { localStorage.setItem(DOWNLOAD_KEY, 'browser'); setMode('browser'); }}
             style={{
-              flex: 1, padding: '8px 12px', fontSize: 12, borderRadius: 8, border: 'none', cursor: 'pointer',
+              padding: '8px 16px', fontSize: 13, borderRadius: 8, border: 'none', cursor: 'pointer',
               background: mode === 'browser' ? 'var(--primary)' : 'transparent',
               color: mode === 'browser' ? '#fff' : 'var(--text-secondary)',
               fontWeight: mode === 'browser' ? 600 : 400, transition: 'all 0.2s',
             }}>浏览器下载</button>
         </div>
-        {mode === 'picker' && !dirName && (
-          <button onClick={handlePickDir} className="btn btn-outline" style={{ fontSize: 12, padding: '6px 14px' }}>设置默认下载目录</button>
-        )}
       </div>
     </div>
   );
