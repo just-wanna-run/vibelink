@@ -78,7 +78,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
       marginBottom: 12,
     }}>
       {type === 'image' && content ? (
-        <div style={{ maxWidth: 240, borderRadius: 12, overflow: 'hidden' }}>
+        <div className="img-bubble">
           <img
             src={content}
             alt="图片"

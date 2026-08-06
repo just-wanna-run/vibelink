@@ -359,6 +359,16 @@ a:hover { text-decoration: underline; }
 [data-theme="dark"] input[type="checkbox"] {
   accent-color: var(--primary);
 }
+/* ===== Image bubble ===== */
+.img-bubble {
+  max-width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+@media (max-width: 767px) {
+  .img-bubble { max-width: 140px; }
+}
+
 @media (max-width: 767px) {
   .desktop-only { display: none !important; }
 }
