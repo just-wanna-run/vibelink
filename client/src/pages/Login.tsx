@@ -214,7 +214,7 @@ export default function Login() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
-                { icon: '🔓', title: '独立账号\n随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 账号登录 100% 可用', color: '#5B9BD5' },
+                { icon: '🔓', title: '独立账号\n随时可用', desc: '其他工具常因安全因素限制登录，VibeLink 支持账号登录 100% 可用', color: '#5B9BD5' },
                 { icon: '🚀', title: '不限大小\n跨网即传', desc: '其他工具限制 100MB 且需同一网络，VibeLink 支持 1GB 任意网络', color: '#4CAF50' },
                 { icon: '📱', title: '全平台\n不挑系统', desc: 'iOS、安卓、Windows、Mac、Linux 都能互传', color: '#FF9800' },
                 { icon: '🔐', title: '端到端加密\n隐私安全', desc: '服务器也无法解密你的内容，真正安全', color: '#9C27B0' },
