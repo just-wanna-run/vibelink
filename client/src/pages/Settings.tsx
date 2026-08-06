@@ -28,7 +28,7 @@ export default function Settings() {
 
   return (
     <Layout>
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: 20, width: '100%' }}>
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: 20, width: '100%' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 24 }}>设置</h1>
 
         {/* Account info */}
