@@ -72,62 +72,31 @@ export default function Chat() {
       return;
     }
 
-    try {
-      const dirHandle = await (window as any).showDirectoryPicker();
-      setDownloadProgress({ current: 0, total: downloadable.length });
-      let saved = 0;
-      for (let i = 0; i < downloadable.length; i++) {
+    setDownloadProgress({ current: 0, total: downloadable.length });
+    let saved = 0;
+    for (let i = 0; i < downloadable.length; i++) {
+      try {
         const msg = downloadable[i];
-        try {
-          let blob: Blob;
-          if (msg.type === 'image' && msg.content) {
-            const res = await fetch(msg.content);
-            blob = await res.blob();
-          } else {
-            const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
-            const res = await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } });
-            blob = await res.blob();
-          }
-          const fname = getFileName(msg, i);
-          const fileHandle = await dirHandle.getFileHandle(fname, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(blob);
-          await writable.close();
-          saved++;
-        } catch { /* skip failed */ }
-        setDownloadProgress({ current: i + 1, total: downloadable.length });
-      }
-      setDownloadProgress(null);
-      setSelected(new Set());
-      setSelectMode(false);
-      alert(`已保存 ${saved} 个文件`);
-    } catch (err: any) {
-      setDownloadProgress(null);
-      if (err?.name === 'AbortError') return;
-      // Fallback: download via blob (works even for Desktop/system folders)
-      let saved = 0;
-      for (let i = 0; i < downloadable.length; i++) {
-        try {
-          let blob: Blob;
-          const msg = downloadable[i];
-          if (msg.type === 'image' && msg.content) {
-            blob = await (await fetch(msg.content)).blob();
-          } else {
-            const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
-            blob = await (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
-          }
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = getFileName(msg, i); a.style.display = 'none';
-          document.body.appendChild(a); a.click();
-          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
-          saved++;
-        } catch {}
-      }
-      setSelected(new Set());
-      setSelectMode(false);
-      if (saved > 0) alert(`已保存 ${saved} 个文件`);
+        let blob: Blob;
+        if (msg.type === 'image' && msg.content) {
+          blob = await (await fetch(msg.content)).blob();
+        } else {
+          const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
+          blob = await (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = getFileName(msg, i); a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        saved++;
+      } catch {}
+      setDownloadProgress({ current: i + 1, total: downloadable.length });
     }
+    setDownloadProgress(null);
+    setSelected(new Set());
+    setSelectMode(false);
+    if (saved > 0) alert(`已保存 ${saved} 个文件`);
   };
 
   const handleBatchDelete = async () => {

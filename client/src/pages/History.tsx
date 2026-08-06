@@ -49,38 +49,20 @@ export default function History() {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const dl = selectedMsgs.filter((m) => (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path));
     if (dl.length === 0) { alert('选中的消息中没有可下载的文件'); return; }
-    try {
-      const dirHandle = await (window as any).showDirectoryPicker();
-      let saved = 0;
-      for (let i = 0; i < dl.length; i++) {
+    let saved = 0;
+    for (let i = 0; i < dl.length; i++) {
+      try {
         const msg = dl[i];
-        try {
-          let blob: Blob;
-          if (msg.type === 'image' && msg.content) {
-            blob = await (await fetch(msg.content)).blob();
-          } else {
-            const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
-            blob = await (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
-          }
-          const fh = await dirHandle.getFileHandle(getFileName(msg, i), { create: true });
-          const w = await fh.createWritable(); await w.write(blob); await w.close();
-          saved++;
-        } catch {}
-      }
-      setSelected(new Set()); setSelectMode(false);
-      alert(`已保存 ${saved} 个文件`);
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dl.forEach(async (msg, i) => {
-        try {
-          let blob: Blob;
-          if (msg.type === 'image' && msg.content) { blob = await (await fetch(msg.content)).blob(); }
-          else { const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || ''; blob = await (await fetch(`/api/files/${msg.file_path}`, { headers: { Authorization: `Bearer ${t}` } })).blob(); }
-          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = getFileName(msg, i); document.body.appendChild(a); a.click();
-          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
-        } catch {}
-      });
+        let blob: Blob;
+        if (msg.type === 'image' && msg.content) { blob = await (await fetch(msg.content)).blob(); }
+        else { const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || ''; blob = await (await fetch(`/api/files/${msg.file_path}`, { headers: { Authorization: `Bearer ${t}` } })).blob(); }
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = getFileName(msg, i); document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        saved++;
+      } catch {}
     }
+    setSelected(new Set()); setSelectMode(false);
+    if (saved > 0) alert(`已保存 ${saved} 个文件`);
   };
 
   useEffect(() => { if (messages.length === 0) loadHistory(); }, []);
