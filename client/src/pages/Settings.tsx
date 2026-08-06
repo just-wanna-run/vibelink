@@ -206,7 +206,7 @@ function DownloadModeSetting() {
 
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
