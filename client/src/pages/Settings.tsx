@@ -33,7 +33,7 @@ export default function Settings() {
 
         {/* Account info */}
         <div className="card" style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>账号信息</h2>
+          <h2 className="section-title">账号信息</h2>
           <div style={{ fontSize: 14, color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {user?.email && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -63,7 +63,7 @@ export default function Settings() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600 }}>夜间模式</h2>
+              <h2 className="section-title">夜间模式</h2>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{theme === 'dark' ? '已开启' : '已关闭'}</p>
             </div>
             <button onClick={toggle} style={{ width: 52, height: 28, borderRadius: 14, border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', background: theme === 'dark' ? 'var(--primary)' : '#ccc' }}>
@@ -75,7 +75,7 @@ export default function Settings() {
         {/* Change password — collapsible */}
         <div className="card" style={{ marginBottom: 20 }}>
           <div onClick={() => setShowPasswordChange(!showPasswordChange)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600 }}>修改密码</h2>
+            <h2 className="section-title">修改密码</h2>
             <span style={{ color: 'var(--text-secondary)', fontSize: 14, transform: showPasswordChange ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
           </div>
           {showPasswordChange && (
@@ -92,7 +92,7 @@ export default function Settings() {
         {/* Feedback — collapsible */}
         <div className="card" style={{ marginBottom: 20 }}>
           <div onClick={() => setShowFeedback(!showFeedback)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600 }}>反馈与建议</h2>
+            <h2 className="section-title">反馈与建议</h2>
             <span style={{ color: 'var(--text-secondary)', fontSize: 14, transform: showFeedback ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
           </div>
           {showFeedback && <FeedbackSection />}
@@ -100,7 +100,7 @@ export default function Settings() {
 
         {/* About */}
         <div className="card" style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 2 }}>关于 VibeLink</h2>
+          <h2 className="section-title">关于 VibeLink</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
             手机和电脑之间互传文件总是不方便？VibeLink 就是你的随身传输助手。
           </p>
@@ -224,7 +224,7 @@ function DownloadModeSetting() {
     <div className="card desktop-only" style={{ marginBottom: 20 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 16 }}>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
+          <h2 className="section-title">下载方式</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
             当前：<strong style={{ color: 'var(--primary)' }}>{mode === 'picker' ? '选文件夹保存' : '浏览器直接下载'}</strong>
             {mode === 'picker' && (
@@ -291,7 +291,7 @@ function SupportSection() {
   const [preview, setPreview] = useState<string | null>(null);
   return (
     <div className="card" style={{ textAlign: 'center', padding: '16px 20px', marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, textAlign: 'left' }}>支持作者</h2>
+      <h2 className="section-title">支持作者</h2>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
         🍭 这根棒棒糖我请了，Bug 你继续修
       </div>

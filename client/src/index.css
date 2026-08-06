@@ -244,6 +244,17 @@ a:hover { text-decoration: underline; }
 .sidebar-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
 .sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
 
+/* ===== Settings headings ===== */
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  padding-left: 12px;
+  border-left: 3px solid var(--primary);
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
 /* ===== Toast / Notifications ===== */
 .toast {
   position: fixed;
