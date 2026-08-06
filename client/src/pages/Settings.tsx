@@ -134,7 +134,7 @@ function downloadDirStore() {
     async get(): Promise<any> {
       return new Promise((resolve, reject) => {
         const r = indexedDB.open(DB);
-        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE); };
         r.onsuccess = () => {
           const db = r.result;
           const tx = db.transaction(STORE, 'readonly');
@@ -148,11 +148,11 @@ function downloadDirStore() {
     async set(handle: any): Promise<void> {
       return new Promise((resolve, reject) => {
         const r = indexedDB.open(DB);
-        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE); };
         r.onsuccess = () => {
           const db = r.result;
           const tx = db.transaction(STORE, 'readwrite');
-          tx.objectStore(STORE).put({ id: 'dir', handle, name: handle.name });
+          tx.objectStore(STORE).put({ name: handle.name, handle }, 'dir');
           tx.oncomplete = () => resolve();
           tx.onerror = reject;
         };
@@ -162,7 +162,7 @@ function downloadDirStore() {
     async getDirName(): Promise<string> {
       return new Promise((resolve) => {
         const r = indexedDB.open(DB);
-        r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+        r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE); };
         r.onsuccess = () => {
           const db = r.result;
           const tx = db.transaction(STORE, 'readonly');
