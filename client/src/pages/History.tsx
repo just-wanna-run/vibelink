@@ -57,7 +57,7 @@ export default function History() {
 
     // Try File System Access API (choose folder)
     try {
-      const dirHandle = await (window as any).showDirectoryPicker();
+      const dirHandle = await (window as any).showDirectoryPicker({ startIn: 'downloads' });
       let saved = 0;
       for (let i = 0; i < dl.length; i++) {
         try {

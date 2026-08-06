@@ -83,7 +83,7 @@ export default function Chat() {
     // Try File System Access API (choose folder)
     let triedApi = false;
     try {
-      const dirHandle = await (window as any).showDirectoryPicker();
+      const dirHandle = await (window as any).showDirectoryPicker({ startIn: 'downloads' });
       triedApi = true;
       setDownloadProgress({ current: 0, total: downloadable.length });
       let saved = 0;
