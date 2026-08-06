@@ -130,6 +130,7 @@ export default function Settings() {
 function DownloadModeSetting() {
   const DOWNLOAD_KEY = 'vibelink_download_mode';
   const [mode, setMode] = useState(localStorage.getItem(DOWNLOAD_KEY) || 'picker');
+  const [showTip, setShowTip] = useState(false);
 
   const toggleMode = () => {
     const next = mode === 'picker' ? 'browser' : 'picker';
@@ -144,6 +145,30 @@ function DownloadModeSetting() {
           <h2 style={{ fontSize: 16, fontWeight: 600 }}>下载方式</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
             当前：<strong style={{ color: 'var(--primary)' }}>{mode === 'picker' ? '选文件夹保存' : '浏览器直接下载'}</strong>
+            {mode === 'picker' && (
+              <span style={{ position: 'relative', display: 'inline-block', marginLeft: 6, verticalAlign: 'middle' }}>
+                <span
+                  onMouseEnter={() => setShowTip(true)}
+                  onMouseLeave={() => setShowTip(false)}
+                  onClick={() => setShowTip(!showTip)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 16, height: 16, borderRadius: '50%', fontSize: 11, cursor: 'pointer',
+                    background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600,
+                  }}>?</span>
+                {showTip && (
+                  <span style={{
+                    position: 'absolute', bottom: '100%', left: '50%',
+                    transform: 'translateX(-50%)', marginBottom: 6, padding: '8px 12px',
+                    background: 'var(--text)', color: '#fff', fontSize: 12, borderRadius: 6,
+                    whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none',
+                    lineHeight: 1.5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  }}>
+                    此模式无法保存到桌面等系统文件夹，如需保存到桌面请切换为「浏览器下载」
+                  </span>
+                )}
+              </span>
+            )}
           </p>
         </div>
         <div style={{
@@ -171,11 +196,6 @@ function DownloadModeSetting() {
           </button>
         </div>
       </div>
-      {mode === 'picker' && (
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10, lineHeight: 1.6, background: 'var(--primary-light)', padding: '8px 12px', borderRadius: 6 }}>
-          ⚠️ 提示：此模式无法保存到桌面等系统文件夹。如需保存到桌面，请切换到「浏览器下载」模式。
-        </p>
-      )}
     </div>
   );
 }
