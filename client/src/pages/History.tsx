@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from 'react';
-import JSZip from 'jszip';
 import { useChatStore, markLocallyDeleted } from '../store/chatStore';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
@@ -50,29 +49,50 @@ export default function History() {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const dl = selectedMsgs.filter((m) => (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path));
     if (dl.length === 0) { alert('选中的消息中没有可下载的文件'); return; }
-    const zip = new JSZip();
+    const fetchBlob = async (msg: typeof dl[0]): Promise<Blob> => {
+      if (msg.type === 'image' && msg.content) return (await fetch(msg.content)).blob();
+      const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
+      return (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${t}` } })).blob();
+    };
+
+    // Try File System Access API (choose folder)
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker();
+      let saved = 0;
+      for (let i = 0; i < dl.length; i++) {
+        try {
+          const blob = await fetchBlob(dl[i]);
+          const fh = await dirHandle.getFileHandle(getFileName(dl[i], i), { create: true });
+          const w = await fh.createWritable(); await w.write(blob); await w.close();
+          saved++;
+        } catch {}
+      }
+      setSelected(new Set()); setSelectMode(false);
+      if (saved > 0) alert(`已保存 ${saved} 个文件`);
+      return;
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
+    }
+
+    // Fallback: browser download
     let saved = 0;
     for (let i = 0; i < dl.length; i++) {
       try {
-        const msg = dl[i];
-        let blob: Blob;
-        if (msg.type === 'image' && msg.content) { blob = await (await fetch(msg.content)).blob(); }
-        else { const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || ''; blob = await (await fetch(`/api/files/${msg.file_path}`, { headers: { Authorization: `Bearer ${t}` } })).blob(); }
-        zip.file(getFileName(msg, i), blob);
+        const blob = await fetchBlob(dl[i]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = getFileName(dl[i], i); a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
         saved++;
       } catch {}
-    }
-    if (saved > 0) {
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(zipBlob);
-      const a = document.createElement('a');
-      const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
-      a.href = url; a.download = `vibelink_${ts}.zip`; a.style.display = 'none';
-      document.body.appendChild(a); a.click();
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+      if (i < dl.length - 1) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
     }
     setSelected(new Set()); setSelectMode(false);
-    if (saved > 0) alert(`已打包 ${saved} 个文件到 ZIP 并下载`);
+    if (saved > 0) alert(`已保存 ${saved} 个文件`);
   };
 
   useEffect(() => { if (messages.length === 0) loadHistory(); }, []);
