@@ -104,14 +104,12 @@ export default function Chat() {
     } catch (err: any) {
       setDownloadProgress(null);
       if (err?.name === 'AbortError') return;
-      if (err?.message?.includes('system')) {
-        alert('无法保存到系统文件夹，请选择"下载"或其他普通文件夹');
-        return;
-      }
-      // Fallback: download via blob to preserve filename
-      downloadable.forEach(async (msg, i) => {
+      // Fallback: download via blob (works even for Desktop/system folders)
+      let saved = 0;
+      for (let i = 0; i < downloadable.length; i++) {
         try {
           let blob: Blob;
+          const msg = downloadable[i];
           if (msg.type === 'image' && msg.content) {
             blob = await (await fetch(msg.content)).blob();
           } else {
@@ -123,8 +121,12 @@ export default function Chat() {
           a.href = url; a.download = getFileName(msg, i); a.style.display = 'none';
           document.body.appendChild(a); a.click();
           setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+          saved++;
         } catch {}
-      });
+      }
+      setSelected(new Set());
+      setSelectMode(false);
+      if (saved > 0) alert(`已保存 ${saved} 个文件`);
     }
   };
 
@@ -365,7 +367,8 @@ export default function Chat() {
           const isSelected = selected.has(msg.id);
 
           return (
-            <div key={msg.id || msg.client_message_id} style={{ position: 'relative' }}>
+            <div key={msg.id || msg.client_message_id} style={{ position: 'relative', cursor: selectMode ? 'pointer' : undefined }}
+              onClick={selectMode ? () => toggleSelect(msg.id) : undefined}>
               {showHeader && (
                 <div style={{ textAlign: 'center', padding: '8px 0', fontSize: 12, color: 'var(--text-secondary)' }}>
                   {formatDateHeader(msg.created_at)}

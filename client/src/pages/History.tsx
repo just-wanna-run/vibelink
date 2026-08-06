@@ -151,7 +151,8 @@ export default function History() {
             const thisDate = new Date(thisTs).toDateString();
             const isSelected = selected.has(msg.id);
             return (
-              <div key={msg.id || msg.client_message_id} style={{ position: 'relative' }}>
+              <div key={msg.id || msg.client_message_id} style={{ position: 'relative', cursor: selectMode ? 'pointer' : undefined }}
+                onClick={selectMode ? () => toggleSelect(msg.id) : undefined}>
                 {prevDate !== thisDate && <div style={{ textAlign: 'center', padding: '10px 0 6px', fontSize: 12, color: 'var(--text-secondary)' }}>{formatDateHeader(thisTs / 1000)}</div>}
                 {selectMode && <div style={{ position: 'absolute', left: 8, top: '50%', zIndex: 2, transform: 'translateY(-50%)' }}><input type="checkbox" checked={isSelected} onChange={() => toggleSelect(msg.id)} style={{ width: 20, height: 20, accentColor: 'var(--primary)', cursor: 'pointer' }} /></div>}
                 <div style={{ opacity: selectMode ? 0.7 : 1, pointerEvents: selectMode ? 'none' : 'auto' }}><MessageBubble message={msg} onDelete={deleteMessage} /></div>
