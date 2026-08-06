@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import JSZip from 'jszip';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore, markLocallyDeleted } from '../store/chatStore';
 import api from '../services/api';
@@ -72,7 +73,7 @@ export default function Chat() {
       return;
     }
 
-    setDownloadProgress({ current: 0, total: downloadable.length });
+    const zip = new JSZip();
     let saved = 0;
     for (let i = 0; i < downloadable.length; i++) {
       try {
@@ -84,19 +85,24 @@ export default function Chat() {
           const token = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || '';
           blob = await (await fetch(`/api/files/${encodeURIComponent(msg.file_path!)}`, { headers: { Authorization: `Bearer ${token}` } })).blob();
         }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = getFileName(msg, i); a.style.display = 'none';
-        document.body.appendChild(a); a.click();
-        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        zip.file(getFileName(msg, i), blob);
         saved++;
       } catch {}
       setDownloadProgress({ current: i + 1, total: downloadable.length });
     }
+    if (saved > 0) {
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+      a.href = url; a.download = `vibelink_${ts}.zip`; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+    }
     setDownloadProgress(null);
     setSelected(new Set());
     setSelectMode(false);
-    if (saved > 0) alert(`已保存 ${saved} 个文件`);
+    if (saved > 0) alert(`已打包 ${saved} 个文件到 ZIP 并下载`);
   };
 
   const handleBatchDelete = async () => {

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import JSZip from 'jszip';
 import { useChatStore, markLocallyDeleted } from '../store/chatStore';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
@@ -49,6 +50,7 @@ export default function History() {
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const dl = selectedMsgs.filter((m) => (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path));
     if (dl.length === 0) { alert('选中的消息中没有可下载的文件'); return; }
+    const zip = new JSZip();
     let saved = 0;
     for (let i = 0; i < dl.length; i++) {
       try {
@@ -56,13 +58,21 @@ export default function History() {
         let blob: Blob;
         if (msg.type === 'image' && msg.content) { blob = await (await fetch(msg.content)).blob(); }
         else { const t = localStorage.getItem('vibelink_token') || sessionStorage.getItem('vibelink_token') || ''; blob = await (await fetch(`/api/files/${msg.file_path}`, { headers: { Authorization: `Bearer ${t}` } })).blob(); }
-        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = getFileName(msg, i); document.body.appendChild(a); a.click();
-        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+        zip.file(getFileName(msg, i), blob);
         saved++;
       } catch {}
     }
+    if (saved > 0) {
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+      a.href = url; a.download = `vibelink_${ts}.zip`; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+    }
     setSelected(new Set()); setSelectMode(false);
-    if (saved > 0) alert(`已保存 ${saved} 个文件`);
+    if (saved > 0) alert(`已打包 ${saved} 个文件到 ZIP 并下载`);
   };
 
   useEffect(() => { if (messages.length === 0) loadHistory(); }, []);
