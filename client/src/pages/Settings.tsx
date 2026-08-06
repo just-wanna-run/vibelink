@@ -151,20 +151,22 @@ function DownloadModeSetting() {
                   onMouseEnter={() => setShowTip(true)}
                   onMouseLeave={() => setShowTip(false)}
                   onClick={() => setShowTip(!showTip)}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 16, height: 16, borderRadius: '50%', fontSize: 11, cursor: 'pointer',
-                    background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600,
-                  }}>?</span>
+                  style={{ display: 'inline-flex', cursor: 'pointer', opacity: 0.5 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </span>
                 {showTip && (
                   <span style={{
                     position: 'absolute', bottom: '100%', left: '50%',
-                    transform: 'translateX(-50%)', marginBottom: 6, padding: '8px 12px',
-                    background: 'var(--text)', color: '#fff', fontSize: 12, borderRadius: 6,
+                    transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px',
+                    background: '#333', color: '#fff', fontSize: 11, borderRadius: 6,
                     whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none',
-                    lineHeight: 1.5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    lineHeight: 1.5, fontWeight: 400,
                   }}>
-                    此模式无法保存到桌面等系统文件夹，如需保存到桌面请切换为「浏览器下载」
+                    此模式无法保存到桌面等系统文件夹
                   </span>
                 )}
               </span>
