@@ -291,7 +291,7 @@ function SupportSection() {
   const [preview, setPreview] = useState<string | null>(null);
   return (
     <div className="card" style={{ textAlign: 'center', padding: '16px 20px', marginBottom: 20 }}>
-      <h2 className="section-title">支持作者</h2>
+      <h2 className="section-title" style={{ textAlign: 'left' }}>支持作者</h2>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
         🍭 这根棒棒糖我请了，Bug 你继续修
       </div>
