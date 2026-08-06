@@ -259,7 +259,7 @@ function DownloadModeSetting() {
             {mode === 'picker' && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
                 {dirName ? (
-                  <>默认下载目录：<strong style={{ color: 'var(--text)' }}>{dirName}</strong>　<button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>✎ 更改</button></>
+                  <>默认下载目录：{dirName} <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0, marginLeft: 8 }}>更改</button></>
                 ) : (
                   <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>设置默认下载目录</button>
                 )}
