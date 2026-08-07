@@ -51,25 +51,30 @@ app.get('/api/admin/stats', async (req, res) => {
     if (pwd !== '551314') return res.status(403).json({ error: '无权限' });
 
     const db = getDb();
-    const [{ data: users }]: any = await Promise.all([
+    const [usersResult, msgsResult]: any = await Promise.all([
       db.from('users').select('id'),
+      db.from('messages').select('id'),
     ]);
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-    const [{ data: messages }, { data: todayMsgs }, { data: weekMsgs }]: any = await Promise.all([
-      db.from('messages').select('id'),
+    const [todayResult, weekResult]: any = await Promise.all([
       db.from('messages').select('id').gt('created_at', today),
       db.from('messages').select('id').gt('created_at', weekAgo),
     ]);
 
+    const users = usersResult?.data || usersResult || [];
+    const messages = msgsResult?.data || msgsResult || [];
+    const todayMsgs = todayResult?.data || todayResult || [];
+    const weekMsgs = weekResult?.data || weekResult || [];
+
     res.json({
-      totalUsers: (users || []).length,
-      totalMessages: (messages || []).length,
-      todayMessages: (todayMsgs || []).length,
-      weekMessages: (weekMsgs || []).length,
+      totalUsers: users.length,
+      totalMessages: messages.length,
+      todayMessages: todayMsgs.length,
+      weekMessages: weekMsgs.length,
     });
   } catch (err) {
     res.status(500).json({ error: '获取失败' });
