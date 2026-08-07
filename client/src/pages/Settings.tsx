@@ -34,35 +34,21 @@ export default function Settings() {
         {/* Account info */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 className="section-title">账号信息</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 00-8 0v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{user?.username || '未登录'}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 8 }}>用户名</span>
-                </div>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #5B9BD5, #4A8AC4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: 18, fontWeight: 700 }}>
+              {(user?.username || '?')[0].toUpperCase()}
             </div>
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="M22 4L12 13L2 4" />
-                </svg>
-                <div>
-                  <span style={{ fontSize: 14, color: 'var(--text)' }}>{user?.recoveryEmail || '未绑定'}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 8 }}>邮箱</span>
-                </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.username || '未登录'}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
+                {user?.recoveryEmail || '未绑定邮箱'}
+                {user?.recoveryEmail && <ChangeEmailButton />}
               </div>
-              <ChangeEmailButton />
             </div>
           </div>
+          {!user?.recoveryEmail && (
+            <div><ChangeEmailButton /></div>
+          )}
         </div>
 
         {/* Download mode */}
