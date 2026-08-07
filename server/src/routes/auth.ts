@@ -150,6 +150,26 @@ router.post('/send-reset-code', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/change-email
+router.post('/change-email', async (req: Request, res: Response) => {
+  try {
+    const { username, password, newEmail } = req.body;
+    if (!username || !password || !newEmail) return res.status(400).json({ error: '缺少参数' });
+
+    const db = getDb();
+    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    if (!user) return res.status(400).json({ error: '用户不存在' });
+
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) return res.status(400).json({ error: '密码错误' });
+
+    await db.from('users').update({ recovery_email: newEmail }).eq('username', username);
+    return res.json({ message: '邮箱已更新' });
+  } catch (err: any) {
+    return res.status(500).json({ error: '更新失败' });
+  }
+});
+
 // POST /api/auth/reset-password
 router.post('/reset-password', async (req: Request, res: Response) => {
   try {

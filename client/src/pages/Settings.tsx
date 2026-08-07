@@ -42,15 +42,14 @@ export default function Settings() {
               </svg>
               {user?.username || '未登录'}
             </div>
-            {user?.recoveryEmail && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="M22 4L12 13L2 4" />
-                </svg>
-                绑定邮箱：{user.recoveryEmail}
-              </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M22 4L12 13L2 4" />
+              </svg>
+              {user?.recoveryEmail ? <>绑定邮箱：{user.recoveryEmail}</> : '未绑定邮箱'}
+              <ChangeEmailButton />
+            </div>
           </div>
         </div>
 
@@ -322,6 +321,39 @@ function AdminSection() {
       )}
     </div>
   );
+}
+
+function ChangeEmailButton() {
+  const { user } = useAuthStore();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [msg, setMsg] = useState('');
+
+  const handleSave = async () => {
+    if (!email.trim()) { setMsg('请输入邮箱'); return; }
+    if (!pwd) { setMsg('请输入密码确认'); return; }
+    try {
+      await api.post('/auth/change-email', { username: user?.username, password: pwd, newEmail: email.trim() });
+      setMsg('邮箱已更新'); setOpen(false);
+      window.location.reload();
+    } catch (e: any) { setMsg(e.response?.data?.error || '更新失败'); }
+  };
+
+  if (open) {
+    return (
+      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input type="email" placeholder="新邮箱" value={email} onChange={(e) => setEmail(e.target.value)}
+          style={{ padding: '5px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 160 }} />
+        <input type="password" placeholder="当前密码" value={pwd} onChange={(e) => setPwd(e.target.value)}
+          style={{ padding: '5px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 120 }} />
+        <button onClick={handleSave} style={{ padding: '5px 12px', fontSize: 12, border: 'none', borderRadius: 6, background: 'var(--primary)', color: '#fff', cursor: 'pointer' }}>保存</button>
+        <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '5px 10px', fontSize: 12, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
+        {msg && <span style={{ fontSize: 11, color: msg === '邮箱已更新' ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
+      </div>
+    );
+  }
+  return <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>更改</button>;
 }
 
 function SupportSection() {
