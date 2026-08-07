@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -131,6 +132,9 @@ export default function Settings() {
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 14 }}>💰 完全免费，源码开放</p>
         </div>
 
+        {/* Delete account */}
+        <DeleteAccountSection />
+
         {/* Admin stats */}
         <AdminSection />
 
@@ -255,6 +259,41 @@ function DownloadModeSetting() {
             <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>请先设置默认下载目录</button>
           )}
         </p>
+      )}
+    </div>
+  );
+}
+
+function DeleteAccountSection() {
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [pwd, setPwd] = useState('');
+  const [msg, setMsg] = useState('');
+
+  const handleDelete = async () => {
+    if (!pwd) { setMsg('请输入密码'); return; }
+    if (!confirm('确定要注销账号吗？所有数据将被永久删除，不可恢复！')) return;
+    try {
+      await api.post('/auth/delete-account', { username: user?.username, password: pwd });
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (e: any) { setMsg(e.response?.data?.error || '注销失败'); }
+  };
+
+  return (
+    <div className="card" style={{ marginBottom: 20 }}>
+      <h2 className="section-title" style={{ borderLeftColor: 'var(--danger)' }}>注销账号</h2>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="btn btn-danger" style={{ fontSize: 13, padding: '7px 16px' }}>注销账号</button>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input type="password" placeholder="输入密码确认" value={pwd} onChange={(e) => setPwd(e.target.value)}
+            style={{ padding: '6px 10px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 13, width: 150 }} />
+          <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13, padding: '6px 16px' }}>确认注销</button>
+          <button onClick={() => { setOpen(false); setPwd(''); setMsg(''); }} className="btn btn-outline" style={{ fontSize: 13, padding: '6px 14px' }}>取消</button>
+          {msg && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{msg}</span>}
+        </div>
       )}
     </div>
   );
