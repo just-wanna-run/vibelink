@@ -177,6 +177,31 @@ router.post('/send-reset-code', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/change-username
+router.post('/change-username', async (req: Request, res: Response) => {
+  try {
+    const { username, password, newUsername } = req.body;
+    if (!username || !password || !newUsername) return res.status(400).json({ error: '缺少参数' });
+    if (newUsername.length < 2) return res.status(400).json({ error: '新用户名至少2个字符' });
+
+    const db = getDb();
+    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    if (!user) return res.status(400).json({ error: '用户不存在' });
+
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) return res.status(400).json({ error: '密码错误' });
+
+    // Check if new username is taken
+    const { data: exist } = await db.from('users').select('id').eq('username', newUsername).maybeSingle();
+    if (exist) return res.status(400).json({ error: '该用户名已存在' });
+
+    await db.from('users').update({ username: newUsername }).eq('username', username);
+    return res.json({ message: '用户名已更新', username: newUsername });
+  } catch (err: any) {
+    return res.status(500).json({ error: '更新失败' });
+  }
+});
+
 // POST /api/auth/change-email
 router.post('/change-email', async (req: Request, res: Response) => {
   try {

@@ -39,16 +39,16 @@ export default function Settings() {
               {(user?.username || '?')[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.username || '未登录'}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.username || '未登录'}
+                <ChangeUsernameButton />
+              </div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
                 {user?.recoveryEmail || '未绑定邮箱'}
-                {user?.recoveryEmail && <ChangeEmailButton />}
+                <ChangeEmailButton />
               </div>
             </div>
           </div>
-          {!user?.recoveryEmail && (
-            <div><ChangeEmailButton /></div>
-          )}
         </div>
 
         {/* Download mode */}
@@ -321,6 +321,39 @@ function AdminSection() {
   );
 }
 
+function ChangeUsernameButton() {
+  const { user } = useAuthStore();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [msg, setMsg] = useState('');
+
+  const handleSave = async () => {
+    if (!name.trim() || name.trim().length < 2) { setMsg('用户名至少2个字符'); return; }
+    if (!pwd) { setMsg('请输入密码确认'); return; }
+    try {
+      await api.post('/auth/change-username', { username: user?.username, password: pwd, newUsername: name.trim() });
+      setMsg('用户名已更新'); setOpen(false);
+      window.location.reload();
+    } catch (e: any) { setMsg(e.response?.data?.error || '更新失败'); }
+  };
+
+  if (open) {
+    return (
+      <span style={{ marginLeft: 8 }}>
+        <input type="text" placeholder="新用户名" value={name} onChange={(e) => setName(e.target.value)}
+          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 110 }} />
+        <input type="password" placeholder="密码" value={pwd} onChange={(e) => setPwd(e.target.value)}
+          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 90, marginLeft: 4 }} />
+        <button onClick={handleSave} style={{ padding: '4px 10px', fontSize: 11, marginLeft: 4, border: 'none', borderRadius: 6, background: 'var(--primary)', color: '#fff', cursor: 'pointer' }}>保存</button>
+        <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '4px 6px', fontSize: 11, marginLeft: 4, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
+        {msg && <span style={{ fontSize: 11, marginLeft: 4, color: msg.includes('更新') ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
+      </span>
+    );
+  }
+  return <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 8, fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, padding: 0 }}>修改</button></span>;
+}
+
 function ChangeEmailButton() {
   const { user } = useAuthStore();
   const [open, setOpen] = useState(false);
@@ -351,7 +384,7 @@ function ChangeEmailButton() {
       </div>
     );
   }
-  return <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>更改</button>;
+  return <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 8, fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, padding: 0 }}>修改</button></span>;
 }
 
 function SupportSection() {
