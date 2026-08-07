@@ -136,6 +136,9 @@ export default function Settings() {
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 14 }}>💰 完全免费，源码开放</p>
         </div>
 
+        {/* Admin stats */}
+        <AdminSection />
+
         {/* Support — at bottom */}
         <SupportSection />
       </div>
@@ -257,6 +260,67 @@ function DownloadModeSetting() {
             <button onClick={handlePickDir} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, padding: 0 }}>请先设置默认下载目录</button>
           )}
         </p>
+      )}
+    </div>
+  );
+}
+
+function AdminSection() {
+  const [expanded, setExpanded] = useState(false);
+  const [pwd, setPwd] = useState('');
+  const [stats, setStats] = useState<any>(null);
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const fetchStats = async () => {
+    if (!pwd.trim()) return;
+    setLoading(true); setErr('');
+    try {
+      const { data } = await api.get('/admin/stats', { headers: { 'x-admin-pwd': pwd.trim() } });
+      setStats(data);
+    } catch (e: any) {
+      setErr(e?.response?.status === 403 ? '密码错误' : '获取失败');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="card" style={{ marginBottom: 20 }}>
+      <div onClick={() => setExpanded(!expanded)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}>
+        <h2 className="section-title" style={{ marginBottom: 0 }}>管理统计</h2>
+        <span style={{ color: 'var(--text-secondary)', fontSize: 14, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▶</span>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input type="password" value={pwd} onChange={(e) => { setPwd(e.target.value); setErr(''); }}
+              placeholder="管理员密码" onKeyDown={(e) => e.key === 'Enter' && fetchStats()}
+              style={{ padding: '6px 10px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 13, width: 130 }} />
+            <button onClick={fetchStats} disabled={loading} className="btn btn-outline"
+              style={{ padding: '6px 14px', fontSize: 12 }}>{loading ? '加载中...' : '查看统计'}</button>
+          </div>
+          {err && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{err}</p>}
+          {stats && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.totalUsers}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>注册用户</div>
+              </div>
+              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.totalMessages}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>消息总数</div>
+              </div>
+              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.todayMessages}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>今日消息</div>
+              </div>
+              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.weekMessages}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>近7天消息</div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

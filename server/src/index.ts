@@ -44,6 +44,38 @@ app.get('/api/feedback', async (_req, res) => {
   } catch (err) { res.status(500).json({ error: '获取失败' }); }
 });
 
+// ---- Admin stats ----
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const pwd = req.headers['x-admin-pwd'] as string;
+    if (pwd !== '551314') return res.status(403).json({ error: '无权限' });
+
+    const db = getDb();
+    const [{ data: users }]: any = await Promise.all([
+      db.from('users').select('id'),
+    ]);
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+
+    const [{ data: messages }, { data: todayMsgs }, { data: weekMsgs }]: any = await Promise.all([
+      db.from('messages').select('id'),
+      db.from('messages').select('id').gt('created_at', today),
+      db.from('messages').select('id').gt('created_at', weekAgo),
+    ]);
+
+    res.json({
+      totalUsers: (users || []).length,
+      totalMessages: (messages || []).length,
+      todayMessages: (todayMsgs || []).length,
+      weekMessages: (weekMsgs || []).length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: '获取失败' });
+  }
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({
