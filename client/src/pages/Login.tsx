@@ -16,7 +16,6 @@ export default function Login() {
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [code, setCode] = useState('');
   const [emailCode, setEmailCode] = useState('');
-  const [emailVerified, setEmailVerified] = useState(false);
   const [emailCountdown, setEmailCountdown] = useState(0);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
@@ -90,7 +89,6 @@ export default function Login() {
     try {
       if (mode === 'register') {
         if (password !== confirmPassword) { setError('两次密码不一致'); return; }
-        if (!emailVerified) { setError('请先验证邮箱'); return; }
         await register({ username: username.trim(), password, recoveryEmail: recoveryEmail.trim(), emailCode: emailCode.trim() });
       } else {
         await login({ username: username.trim(), password, rememberMe });
@@ -147,23 +145,14 @@ export default function Login() {
                   <div className="input-group"><label>确认密码</label><input type="password" placeholder="再次输入密码" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div>
                   <div className="input-group"><label>绑定邮箱（用于找回密码）</label>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <input type="email" placeholder="输入邮箱地址" value={recoveryEmail} onChange={(e) => { setRecoveryEmail(e.target.value); setEmailVerified(false); }} required style={{ flex: 1 }} />
-                      <button type="button" onClick={handleSendEmailCode} disabled={emailCountdown > 0 || emailVerified}
-                        style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 13, borderRadius: 6, border: '1.5px solid var(--primary)', cursor: emailCountdown > 0 || emailVerified ? 'default' : 'pointer', background: emailVerified ? 'var(--success)' : emailCountdown > 0 ? 'var(--border)' : 'var(--white)', color: emailVerified ? '#fff' : emailCountdown > 0 ? 'var(--text-secondary)' : 'var(--primary)' }}>
-                        {emailVerified ? '已验证' : emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码'}
+                      <input type="email" placeholder="输入邮箱地址" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} required style={{ flex: 1 }} />
+                      <button type="button" onClick={handleSendEmailCode} disabled={emailCountdown > 0}
+                        style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 13, borderRadius: 6, border: '1.5px solid var(--primary)', cursor: emailCountdown > 0 ? 'default' : 'pointer', background: emailCountdown > 0 ? 'var(--border)' : 'var(--white)', color: emailCountdown > 0 ? 'var(--text-secondary)' : 'var(--primary)' }}>
+                        {emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码'}
                       </button>
                     </div>
                   </div>
-                  {!emailVerified && (
-                    <div className="input-group"><label>邮箱验证码</label>
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <input type="text" placeholder="输入邮箱验证码" value={emailCode} onChange={(e) => setEmailCode(e.target.value)} maxLength={6} style={{ flex: 1 }} />
-                        <button type="button" onClick={() => { setEmailVerified(true); setError(''); }}
-                          disabled={emailCode.length < 4} className="btn btn-outline"
-                          style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}>验证</button>
-                      </div>
-                    </div>
-                  )}
+                  <div className="input-group"><label>邮箱验证码</label><input type="text" placeholder="输入邮箱验证码" value={emailCode} onChange={(e) => setEmailCode(e.target.value)} maxLength={6} /></div>
                 </>
               )}
 
