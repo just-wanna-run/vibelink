@@ -50,6 +50,7 @@ export default function Settings() {
               </div>
             </div>
           </div>
+          <DeleteAccountButton />
         </div>
 
         {/* Download mode */}
@@ -131,9 +132,6 @@ export default function Settings() {
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 14 }}>💰 完全免费，源码开放</p>
         </div>
-
-        {/* Delete account */}
-        <DeleteAccountSection />
 
         {/* Admin stats */}
         <AdminSection />
@@ -264,7 +262,7 @@ function DownloadModeSetting() {
   );
 }
 
-function DeleteAccountSection() {
+function DeleteAccountButton() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -273,7 +271,6 @@ function DeleteAccountSection() {
 
   const handleDelete = async () => {
     if (!pwd) { setMsg('请输入密码'); return; }
-    if (!confirm('确定要注销账号吗？所有数据将被永久删除，不可恢复！')) return;
     try {
       await api.post('/auth/delete-account', { username: user?.username, password: pwd });
       await logout();
@@ -282,20 +279,26 @@ function DeleteAccountSection() {
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <h2 className="section-title" style={{ borderLeftColor: 'var(--danger)' }}>注销账号</h2>
-      {!open ? (
-        <button onClick={() => setOpen(true)} className="btn btn-danger" style={{ fontSize: 13, padding: '7px 16px' }}>注销账号</button>
-      ) : (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="password" placeholder="输入密码确认" value={pwd} onChange={(e) => setPwd(e.target.value)}
-            style={{ padding: '6px 10px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 13, width: 150 }} />
-          <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13, padding: '6px 16px' }}>确认注销</button>
-          <button onClick={() => { setOpen(false); setPwd(''); setMsg(''); }} className="btn btn-outline" style={{ fontSize: 13, padding: '6px 14px' }}>取消</button>
-          {msg && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{msg}</span>}
+    <>
+      <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 12, padding: 0, opacity: 0.6 }}>
+        注销账号
+      </button>
+      {open && (
+        <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--white)', borderRadius: 12, padding: 24, width: 340, maxWidth: '90vw', boxShadow: '0 8px 30px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>注销账号</h3>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>此操作不可恢复，所有数据将被永久删除。</p>
+            <input type="password" placeholder="输入密码确认" value={pwd} onChange={(e) => setPwd(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, marginBottom: 12, outline: 'none' }} />
+            {msg && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{msg}</p>}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => { setOpen(false); setPwd(''); setMsg(''); }} className="btn btn-outline" style={{ fontSize: 13, padding: '8px 20px' }}>取消</button>
+              <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13, padding: '8px 20px' }}>确认注销</button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
