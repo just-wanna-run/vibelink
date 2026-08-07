@@ -284,7 +284,9 @@ function DeleteAccountButton() {
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--white)', borderRadius: 12, padding: 24, width: 340, maxWidth: '90vw', boxShadow: '0 8px 30px rgba(0,0,0,0.15)' }}>
             <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>注销账号</h3>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>此操作不可恢复，所有数据将被永久删除。</p>
+            <div style={{ background: '#FFF0F0', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: 'var(--danger)', fontSize: 13, lineHeight: 1.5 }}>
+              ⚠️ 此操作不可恢复，所有数据将被永久删除，包括消息记录和文件。
+            </div>
             <input type="password" placeholder="输入密码确认" value={pwd} onChange={(e) => setPwd(e.target.value)}
               style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, marginBottom: 12, outline: 'none' }} />
             {msg && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{msg}</p>}
