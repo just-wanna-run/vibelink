@@ -202,8 +202,8 @@ router.post('/change-username', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/change-email
-router.post('/change-email', async (req: Request, res: Response) => {
+// POST /api/auth/send-change-email-code
+router.post('/send-change-email-code', async (req: Request, res: Response) => {
   try {
     const { username, password, newEmail } = req.body;
     if (!username || !password || !newEmail) return res.status(400).json({ error: '缺少参数' });
@@ -214,6 +214,41 @@ router.post('/change-email', async (req: Request, res: Response) => {
 
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ error: '密码错误' });
+
+    // Check if new email is already used by someone else
+    const { data: exist } = await db.from('users').select('id').eq('recovery_email', newEmail).maybeSingle();
+    if (exist) return res.status(400).json({ error: '该邮箱已被其他账号绑定' });
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    codeStore.set(`chg_${username}_${newEmail}`, { code, expires: Date.now() + 5 * 60 * 1000 });
+    console.log(`[CHANGE EMAIL] Code for ${username} -> ${newEmail}: ${code}`);
+    return res.json({ code });
+  } catch (err: any) {
+    return res.status(500).json({ error: '发送失败' });
+  }
+});
+
+// POST /api/auth/change-email
+router.post('/change-email', async (req: Request, res: Response) => {
+  try {
+    const { username, password, newEmail, code } = req.body;
+    if (!username || !password || !newEmail || !code) return res.status(400).json({ error: '缺少参数' });
+
+    const db = getDb();
+    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    if (!user) return res.status(400).json({ error: '用户不存在' });
+
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) return res.status(400).json({ error: '密码错误' });
+
+    // Verify code
+    const stored = codeStore.get(`chg_${username}_${newEmail}`);
+    if (!stored || stored.expires < Date.now()) {
+      codeStore.delete(`chg_${username}_${newEmail}`);
+      return res.status(400).json({ error: '验证码已过期，请重新获取' });
+    }
+    if (stored.code !== code) return res.status(400).json({ error: '验证码错误' });
+    codeStore.delete(`chg_${username}_${newEmail}`);
 
     await db.from('users').update({ recovery_email: newEmail }).eq('username', username);
     return res.json({ message: '邮箱已更新' });

@@ -359,13 +359,33 @@ function ChangeEmailButton() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');
+  const [code, setCode] = useState('');
+  const [countdown, setCountdown] = useState(0);
   const [msg, setMsg] = useState('');
 
-  const handleSave = async () => {
-    if (!email.trim()) { setMsg('请输入邮箱'); return; }
-    if (!pwd) { setMsg('请输入密码确认'); return; }
+  useEffect(() => {
+    if (countdown > 0) {
+      const t = setInterval(() => setCountdown((c) => (c <= 1 ? 0 : c - 1)), 1000);
+      return () => clearInterval(t);
+    }
+  }, [countdown]);
+
+  const handleSendCode = async () => {
+    if (!email.trim()) { setMsg('请输入新邮箱'); return; }
+    if (!pwd) { setMsg('请输入密码'); return; }
+    if (countdown > 0) return;
+    setMsg('');
     try {
-      await api.post('/auth/change-email', { username: user?.username, password: pwd, newEmail: email.trim() });
+      const { data } = await api.post('/auth/send-change-email-code', { username: user?.username, password: pwd, newEmail: email.trim() });
+      if (data.code) { alert(`验证码：${data.code}`); navigator.clipboard?.writeText(data.code); }
+      setCountdown(60);
+    } catch (e: any) { setMsg(e.response?.data?.error || '发送失败'); }
+  };
+
+  const handleSave = async () => {
+    if (!code.trim()) { setMsg('请输入验证码'); return; }
+    try {
+      await api.post('/auth/change-email', { username: user?.username, password: pwd, newEmail: email.trim(), code: code.trim() });
       setMsg('邮箱已更新'); setOpen(false);
       window.location.reload();
     } catch (e: any) { setMsg(e.response?.data?.error || '更新失败'); }
@@ -373,14 +393,20 @@ function ChangeEmailButton() {
 
   if (open) {
     return (
-      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="email" placeholder="新邮箱" value={email} onChange={(e) => setEmail(e.target.value)}
-          style={{ padding: '5px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 160 }} />
-        <input type="password" placeholder="当前密码" value={pwd} onChange={(e) => setPwd(e.target.value)}
-          style={{ padding: '5px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 120 }} />
-        <button onClick={handleSave} style={{ padding: '5px 12px', fontSize: 12, border: 'none', borderRadius: 6, background: 'var(--primary)', color: '#fff', cursor: 'pointer' }}>保存</button>
-        <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '5px 10px', fontSize: 12, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
-        {msg && <span style={{ fontSize: 11, color: msg === '邮箱已更新' ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
+          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 150 }} />
+        <input type="password" placeholder="密码" value={pwd} onChange={(e) => setPwd(e.target.value)}
+          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 80 }} />
+        <button onClick={handleSendCode} disabled={countdown > 0}
+          style={{ padding: '4px 10px', fontSize: 11, border: '1.5px solid var(--primary)', borderRadius: 6, cursor: countdown > 0 ? 'default' : 'pointer', background: countdown > 0 ? 'var(--border)' : 'var(--white)', color: countdown > 0 ? 'var(--text-secondary)' : 'var(--primary)', whiteSpace: 'nowrap' }}>
+          {countdown > 0 ? `${countdown}s` : '发验证码'}
+        </button>
+        <input type="text" placeholder="验证码" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6}
+          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 70 }} />
+        <button onClick={handleSave} style={{ padding: '4px 10px', fontSize: 11, border: 'none', borderRadius: 6, background: 'var(--primary)', color: '#fff', cursor: 'pointer' }}>保存</button>
+        <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '4px 6px', fontSize: 11, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
+        {msg && <span style={{ fontSize: 11, color: msg.includes('更新') ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
       </div>
     );
   }
