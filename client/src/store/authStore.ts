@@ -18,7 +18,7 @@ interface AuthState {
   isCheckingToken: boolean;
 
   login: (params: { username: string; password: string; rememberMe?: boolean }) => Promise<void>;
-  register: (params: { username: string; password: string; recoveryEmail?: string }) => Promise<void>;
+  register: (params: { username: string; password: string; recoveryEmail: string; emailCode: string }) => Promise<void>;
   logout: () => Promise<void>;
   checkStoredToken: () => Promise<boolean>;
 }
@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async ({ username, password, recoveryEmail }) => {
+  register: async ({ username, password, recoveryEmail, emailCode }) => {
     set({ isLoading: true });
     try {
       const deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
@@ -100,7 +100,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const { data } = await api.post('/auth/register', {
         username, password,
-        recoveryEmail: recoveryEmail || undefined,
+        recoveryEmail,
+        emailCode,
         deviceName, deviceType,
         encryptedPrivateKey: encryptedKey || undefined,
       });

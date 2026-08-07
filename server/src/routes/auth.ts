@@ -6,14 +6,41 @@ import { generateToken } from '../middleware/auth';
 
 const router = Router();
 
+// POST /api/auth/send-register-code
+router.post('/send-register-code', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: '请输入邮箱' });
+    // Check if email already registered
+    const { data: exist } = await getDb().from('users').select('id').eq('recovery_email', email).maybeSingle();
+    if (exist) return res.status(400).json({ error: '该邮箱已被绑定' });
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    codeStore.set(`reg_${email}`, { code, expires: Date.now() + 5 * 60 * 1000 });
+    console.log(`[REGISTER] Verification code for ${email}: ${code}`);
+    return res.json({ code });
+  } catch (err: any) {
+    return res.status(500).json({ error: '发送失败' });
+  }
+});
+
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { username, password, recoveryEmail, publicKey, encryptedPrivateKey } = req.body;
+    const { username, password, recoveryEmail, emailCode, publicKey, encryptedPrivateKey } = req.body;
 
     if (!username || username.length < 2) return res.status(400).json({ error: '用户名至少2个字符' });
     if (!password || password.length < 6) return res.status(400).json({ error: '密码至少6个字符' });
     if (!recoveryEmail) return res.status(400).json({ error: '请绑定邮箱用于找回密码' });
+
+    // Verify email code
+    const stored = codeStore.get(`reg_${recoveryEmail}`);
+    if (!stored || stored.expires < Date.now()) {
+      codeStore.delete(`reg_${recoveryEmail}`);
+      return res.status(400).json({ error: '验证码已过期，请重新获取' });
+    }
+    if (stored.code !== emailCode) return res.status(400).json({ error: '验证码错误' });
+    codeStore.delete(`reg_${recoveryEmail}`);
 
     const db = getDb();
 
