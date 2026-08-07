@@ -138,7 +138,7 @@ export default function Login() {
             </form>
           ) : (
             <form onSubmit={handleSubmit}>
-              <div className="input-group"><label>用户名</label><input type="text" placeholder="设置一个用户名" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus /></div>
+              <div className="input-group"><label>用户名</label><input type="text" placeholder={mode === 'register' ? '设置用户名' : '输入用户名'} value={username} onChange={(e) => setUsername(e.target.value)} autoFocus /></div>
               <div className="input-group"><label>密码</label><input type="password" placeholder="至少6个字符" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
               {mode === 'register' && (
                 <>
