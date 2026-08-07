@@ -50,7 +50,7 @@ export default function Settings() {
               </div>
             </div>
           </div>
-          <DeleteAccountButton />
+          <div style={{ textAlign: 'right' }}><DeleteAccountButton /></div>
         </div>
 
         {/* Download mode */}
@@ -280,9 +280,7 @@ function DeleteAccountButton() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 12, padding: 0, opacity: 0.6 }}>
-        注销账号
-      </button>
+      <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 11, padding: 0, opacity: 0.7 }}>注销</button></span>
       {open && (
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--white)', borderRadius: 12, padding: 24, width: 340, maxWidth: '90vw', boxShadow: '0 8px 30px rgba(0,0,0,0.15)' }}>
