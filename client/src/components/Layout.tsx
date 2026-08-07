@@ -104,7 +104,7 @@ export default function Layout({ children }: Props) {
         <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--primary)' }}>VibeLink</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 12, color: 'var(--text-secondary)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {user?.email || user?.phone || ''}
+            {user?.username || ''}
           </span>
           <button
             onClick={handleLogout}

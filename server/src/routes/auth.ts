@@ -9,28 +9,25 @@ const router = Router();
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, phone, password, publicKey, encryptedPrivateKey } = req.body;
+    const { username, password, recoveryEmail, publicKey, encryptedPrivateKey } = req.body;
 
+    if (!username || username.length < 2) return res.status(400).json({ error: '用户名至少2个字符' });
     if (!password || password.length < 6) return res.status(400).json({ error: '密码至少6个字符' });
-    if (!email && !phone) return res.status(400).json({ error: '请填写邮箱或手机号' });
 
     const db = getDb();
 
-    if (email) {
-      const { data: exist } = await db.from('users').select('id').eq('email', email).maybeSingle();
-      if (exist) return res.status(400).json({ error: '该邮箱已被注册' });
-    }
-    if (phone) {
-      const { data: exist } = await db.from('users').select('id').eq('phone', phone).maybeSingle();
-      if (exist) return res.status(400).json({ error: '该手机号已被注册' });
-    }
+    // Check if username exists
+    const { data: exist } = await db.from('users').select('id').eq('username', username).maybeSingle();
+    if (exist) return res.status(400).json({ error: '该用户名已存在' });
 
     const userId = uuidv4();
     const passwordHash = await bcrypt.hash(password, 12);
 
     await db.from('users').insert({
-      id: userId, email: email || null, phone: phone || null,
-      password_hash: passwordHash, public_key: publicKey || null,
+      id: userId, username,
+      password_hash: passwordHash,
+      recovery_email: recoveryEmail || null,
+      public_key: publicKey || null,
       encrypted_private_key: encryptedPrivateKey || null,
     });
 
@@ -45,7 +42,7 @@ router.post('/register', async (req: Request, res: Response) => {
       expires_at: expiresAt,
     });
 
-    return res.json({ token, userId, email: email || null, phone: phone || null, message: '注册成功' });
+    return res.json({ token, userId, username, message: '注册成功' });
   } catch (err: any) {
     console.error('Register error:', err);
     return res.status(500).json({ error: '注册失败' });
@@ -55,22 +52,12 @@ router.post('/register', async (req: Request, res: Response) => {
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { email, phone, password, rememberMe, deviceName, deviceType } = req.body;
+    const { username, password, rememberMe, deviceName, deviceType } = req.body;
+    if (!username) return res.status(400).json({ error: '请输入用户名' });
     if (!password) return res.status(400).json({ error: '请输入密码' });
 
     const db = getDb();
-    let user: any;
-
-    if (email) {
-      const { data } = await db.from('users').select('*').eq('email', email).maybeSingle();
-      user = data;
-    } else if (phone) {
-      const { data } = await db.from('users').select('*').eq('phone', phone).maybeSingle();
-      user = data;
-    } else {
-      return res.status(400).json({ error: '请输入邮箱或手机号' });
-    }
-
+    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
     if (!user) return res.status(400).json({ error: '账号不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
@@ -90,7 +77,8 @@ router.post('/login', async (req: Request, res: Response) => {
     });
 
     return res.json({
-      token, userId: user.id, email: user.email, phone: user.phone,
+      token, userId: user.id, username: user.username,
+      recoveryEmail: user.recovery_email,
       publicKey: user.public_key, encryptedPrivateKey: user.encrypted_private_key,
       message: '登录成功',
     });
@@ -108,7 +96,7 @@ router.post('/verify-token', async (req: Request, res: Response) => {
 
     const db = getDb();
     const { data: session } = await db.from('sessions')
-      .select('*, users(email, phone, public_key, encrypted_private_key)')
+      .select('*, users(username, recovery_email, public_key, encrypted_private_key)')
       .eq('token', token)
       .maybeSingle() as any;
 
@@ -117,8 +105,9 @@ router.post('/verify-token', async (req: Request, res: Response) => {
     }
 
     return res.json({
-      token, userId: session.user_id, email: session.users?.email,
-      phone: session.users?.phone, publicKey: session.users?.public_key,
+      token, userId: session.user_id, username: session.users?.username,
+      recoveryEmail: session.users?.recovery_email,
+      publicKey: session.users?.public_key,
       encryptedPrivateKey: session.users?.encrypted_private_key,
     });
   } catch (err: any) {
@@ -139,76 +128,22 @@ router.post('/logout', async (req: Request, res: Response) => {
 
 // ---- In-memory verification code store ----
 const codeStore = new Map<string, { code: string; expires: number }>();
-import { sendSMS } from '../services/sms';
-
-// POST /api/auth/send-code
-router.post('/send-code', async (req: Request, res: Response) => {
-  try {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ error: '请输入手机号' });
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    codeStore.set(phone, { code, expires: Date.now() + 5 * 60 * 1000 });
-    const result = await sendSMS(phone, code);
-    return res.json({ message: result.dev ? '验证码已发送（开发模式）' : '验证码已发送', code: result.dev ? code : undefined });
-  } catch (err: any) {
-    return res.status(500).json({ error: '发送失败' });
-  }
-});
-
-// POST /api/auth/login-with-code
-router.post('/login-with-code', async (req: Request, res: Response) => {
-  try {
-    const { phone, code, rememberMe, deviceName, deviceType } = req.body;
-    if (!phone || !code) return res.status(400).json({ error: '请输入手机号和验证码' });
-
-    const stored = codeStore.get(phone);
-    if (!stored || stored.expires < Date.now()) { codeStore.delete(phone); return res.status(400).json({ error: '验证码已过期' }); }
-    if (stored.code !== code) return res.status(400).json({ error: '验证码错误' });
-    codeStore.delete(phone);
-
-    const db = getDb();
-    let { data: user } = await db.from('users').select('*').eq('phone', phone).maybeSingle() as any;
-
-    if (!user) {
-      const userId = uuidv4();
-      const randomPass = uuidv4();
-      const passwordHash = await bcrypt.hash(randomPass, 12);
-      await db.from('users').insert({ id: userId, phone, password_hash: passwordHash });
-      const { data: u } = await db.from('users').select('*').eq('id', userId).single();
-      user = u;
-    }
-
-    const sessionId = uuidv4();
-    const token = generateToken(user.id, sessionId, !!rememberMe);
-    const expiresAt = rememberMe
-      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    await db.from('sessions').insert({ id: sessionId, user_id: user.id, token, device_name: deviceName || '手机', device_type: deviceType || 'mobile', expires_at: expiresAt });
-
-    return res.json({ token, userId: user.id, email: user.email, phone: user.phone, publicKey: user.public_key, encryptedPrivateKey: user.encrypted_private_key, isNewUser: !user.email });
-  } catch (err: any) {
-    return res.status(500).json({ error: '登录失败' });
-  }
-});
 
 // POST /api/auth/send-reset-code
 router.post('/send-reset-code', async (req: Request, res: Response) => {
   try {
-    const { email, phone } = req.body;
-    if (!email && !phone) return res.status(400).json({ error: '请输入邮箱或手机号' });
-    const db = getDb();
-    let user: any;
-    if (email) { const { data } = await db.from('users').select('*').eq('email', email).maybeSingle(); user = data; }
-    else { const { data } = await db.from('users').select('*').eq('phone', phone).maybeSingle(); user = data; }
-    if (!user) return res.status(400).json({ error: '该账号不存在' });
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ error: '请输入用户名' });
 
-    const target = email || phone;
+    const db = getDb();
+    const { data: user } = await db.from('users').select('id,recovery_email').eq('username', username).maybeSingle() as any;
+    if (!user) return res.status(400).json({ error: '该账号不存在' });
+    if (!user.recovery_email) return res.status(400).json({ error: '该账号未绑定邮箱，无法找回密码' });
+
     const code = String(Math.floor(100000 + Math.random() * 900000));
-    codeStore.set(`reset_${target}`, { code, expires: Date.now() + 5 * 60 * 1000 });
-    const result = await sendSMS(phone || '', code);
-    if (email) console.log(`[RESET] Reset code for ${email}: ${code}`);
-    return res.json({ message: '验证码已发送', code: result.dev ? code : undefined });
+    codeStore.set(`reset_${username}`, { code, expires: Date.now() + 5 * 60 * 1000 });
+    console.log(`[RESET] Reset code for ${username} (${user.recovery_email}): ${code}`);
+    return res.json({ message: '验证码已发送', code });
   } catch (err: any) {
     return res.status(500).json({ error: '发送失败' });
   }
@@ -217,21 +152,18 @@ router.post('/send-reset-code', async (req: Request, res: Response) => {
 // POST /api/auth/reset-password
 router.post('/reset-password', async (req: Request, res: Response) => {
   try {
-    const { email, phone, code, newPassword } = req.body;
-    if (!email && !phone) return res.status(400).json({ error: '请输入邮箱或手机号' });
+    const { username, code, newPassword } = req.body;
+    if (!username) return res.status(400).json({ error: '请输入用户名' });
     if (!code) return res.status(400).json({ error: '请输入验证码' });
     if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: '新密码至少6个字符' });
 
-    const target = email || phone;
-    const stored = codeStore.get(`reset_${target}`);
-    if (!stored || stored.expires < Date.now()) { codeStore.delete(`reset_${target}`); return res.status(400).json({ error: '验证码已过期' }); }
+    const stored = codeStore.get(`reset_${username}`);
+    if (!stored || stored.expires < Date.now()) { codeStore.delete(`reset_${username}`); return res.status(400).json({ error: '验证码已过期' }); }
     if (stored.code !== code) return res.status(400).json({ error: '验证码错误' });
-    codeStore.delete(`reset_${target}`);
+    codeStore.delete(`reset_${username}`);
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
-    const db = getDb();
-    if (email) await db.from('users').update({ password_hash: passwordHash }).eq('email', email);
-    else await db.from('users').update({ password_hash: passwordHash }).eq('phone', phone);
+    await getDb().from('users').update({ password_hash: passwordHash }).eq('username', username);
 
     return res.json({ message: '密码已重置，请重新登录' });
   } catch (err: any) {
