@@ -377,7 +377,7 @@ function ChangeEmailButton() {
     setMsg('');
     try {
       const { data } = await api.post('/auth/send-change-email-code', { username: user?.username, password: pwd, newEmail: email.trim() });
-      if (data.code) { alert(`验证码：${data.code}`); navigator.clipboard?.writeText(data.code); }
+      if (!data.sent && data.code) { alert(`验证码：${data.code}\n（已自动复制到剪贴板）`); navigator.clipboard?.writeText(data.code); }
       setCountdown(60);
     } catch (e: any) { setMsg(e.response?.data?.error || '发送失败'); }
   };

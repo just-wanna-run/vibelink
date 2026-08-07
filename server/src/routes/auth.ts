@@ -17,8 +17,8 @@ router.post('/send-register-code', async (req: Request, res: Response) => {
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
     codeStore.set(`reg_${email}`, { code, expires: Date.now() + 5 * 60 * 1000 });
-    console.log(`[REGISTER] Verification code for ${email}: ${code}`);
-    return res.json({ code });
+    const sent = await sendEmailCode(email, code, '注册验证');
+    return res.json({ sent, code: sent ? undefined : code });
   } catch (err: any) {
     return res.status(500).json({ error: '发送失败' });
   }
@@ -156,6 +156,7 @@ router.post('/logout', async (req: Request, res: Response) => {
 
 // ---- In-memory verification code store ----
 const codeStore = new Map<string, { code: string; expires: number }>();
+import { sendEmailCode } from '../services/email';
 
 // POST /api/auth/send-reset-code
 router.post('/send-reset-code', async (req: Request, res: Response) => {
@@ -170,8 +171,8 @@ router.post('/send-reset-code', async (req: Request, res: Response) => {
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
     codeStore.set(`reset_${username}`, { code, expires: Date.now() + 5 * 60 * 1000 });
-    console.log(`[RESET] Reset code for ${username} (${user.recovery_email}): ${code}`);
-    return res.json({ message: '验证码已发送', code });
+    const sent = await sendEmailCode(user.recovery_email, code, '重置密码');
+    return res.json({ message: '验证码已发送', sent, code: sent ? undefined : code });
   } catch (err: any) {
     return res.status(500).json({ error: '发送失败' });
   }
@@ -221,8 +222,8 @@ router.post('/send-change-email-code', async (req: Request, res: Response) => {
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
     codeStore.set(`chg_${username}_${newEmail}`, { code, expires: Date.now() + 5 * 60 * 1000 });
-    console.log(`[CHANGE EMAIL] Code for ${username} -> ${newEmail}: ${code}`);
-    return res.json({ code });
+    const sent = await sendEmailCode(newEmail, code, '修改绑定邮箱');
+    return res.json({ sent, code: sent ? undefined : code });
   } catch (err: any) {
     return res.status(500).json({ error: '发送失败' });
   }
