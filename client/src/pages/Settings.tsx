@@ -44,8 +44,8 @@ export default function Settings() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{user?.username || '未登录'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>用户名</div>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{user?.username || '未登录'}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 8 }}>用户名</span>
                 </div>
               </div>
             </div>
@@ -56,8 +56,8 @@ export default function Settings() {
                   <path d="M22 4L12 13L2 4" />
                 </svg>
                 <div>
-                  <div style={{ fontSize: 14, color: 'var(--text)' }}>{user?.recoveryEmail || '未绑定'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>邮箱</div>
+                  <span style={{ fontSize: 14, color: 'var(--text)' }}>{user?.recoveryEmail || '未绑定'}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 8 }}>邮箱</span>
                 </div>
               </div>
               <ChangeEmailButton />
