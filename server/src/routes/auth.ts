@@ -13,6 +13,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     if (!username || username.length < 2) return res.status(400).json({ error: '用户名至少2个字符' });
     if (!password || password.length < 6) return res.status(400).json({ error: '密码至少6个字符' });
+    if (!recoveryEmail) return res.status(400).json({ error: '请绑定邮箱用于找回密码' });
 
     const db = getDb();
 

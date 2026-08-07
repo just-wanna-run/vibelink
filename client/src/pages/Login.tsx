@@ -126,7 +126,7 @@ export default function Login() {
               {mode === 'register' && (
                 <>
                   <div className="input-group"><label>确认密码</label><input type="password" placeholder="再次输入密码" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div>
-                  <div className="input-group"><label>绑定邮箱（选填，用于找回密码）</label><input type="email" placeholder="输入邮箱地址" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} /></div>
+                  <div className="input-group"><label>绑定邮箱（用于找回密码）</label><input type="email" placeholder="输入邮箱地址" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} required /></div>
                 </>
               )}
 
