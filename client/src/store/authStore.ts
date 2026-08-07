@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       setStoredToken(data.token, true);
       set({
-        user: { userId: data.userId, username: data.username },
+        user: { userId: data.userId, username: data.username, recoveryEmail: data.recoveryEmail },
         token: data.token,
         isLoading: false,
       });

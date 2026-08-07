@@ -70,7 +70,7 @@ router.post('/register', async (req: Request, res: Response) => {
       expires_at: expiresAt,
     });
 
-    return res.json({ token, userId, username, message: '注册成功' });
+    return res.json({ token, userId, username, recoveryEmail, message: '注册成功' });
   } catch (err: any) {
     console.error('Register error:', err);
     return res.status(500).json({ error: '注册失败' });
