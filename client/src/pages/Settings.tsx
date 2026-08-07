@@ -40,9 +40,9 @@ export default function Settings() {
               {(user?.username || '?')[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {user?.username || '未登录'}
-                <ChangeUsernameButton />
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>{user?.username || '未登录'}<ChangeUsernameButton /></span>
+                <DeleteAccountButton />
               </div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
                 {user?.recoveryEmail || '未绑定邮箱'}
@@ -50,7 +50,6 @@ export default function Settings() {
               </div>
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}><DeleteAccountButton /></div>
         </div>
 
         {/* Download mode */}
@@ -280,7 +279,7 @@ function DeleteAccountButton() {
 
   return (
     <>
-      <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: 11, padding: 0, opacity: 0.7 }}>注销</button></span>
+      <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, padding: 0 }}>注销</button></span>
       {open && (
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--white)', borderRadius: 12, padding: 24, width: 340, maxWidth: '90vw', boxShadow: '0 8px 30px rgba(0,0,0,0.15)' }}>
