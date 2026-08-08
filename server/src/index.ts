@@ -12,7 +12,7 @@ import { setupWebSocket } from './ws';
 import { getDb } from './db';
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '8080');
+const PORT = parseInt(process.env.PORT || '3001');
 const isProduction = process.env.NODE_ENV === 'production';
 
 // ---- Middleware ----
