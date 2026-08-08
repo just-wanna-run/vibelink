@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 // In dev: Vite proxy handles /api → localhost:3001
 // In prod: set VITE_API_URL to Render backend URL
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
