@@ -20,6 +20,7 @@ router.post('/send-register-code', async (req: Request, res: Response) => {
     const sent = await sendEmailCode(email, code, '注册验证');
     return res.json({ sent, code: sent ? undefined : code });
   } catch (err: any) {
+    console.error('[Auth] send-register-code error:', err.message || err);
     return res.status(500).json({ error: '发送失败' });
   }
 });
