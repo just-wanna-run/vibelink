@@ -11,6 +11,7 @@ router.post('/send-register-code', async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: '请输入邮箱' });
+    console.log('[Auth] send-register-code called for:', email);
     // Check if email already registered
     const { data: exist } = await getDb().from('users').select('id').eq('recovery_email', email).maybeSingle();
     if (exist) return res.status(400).json({ error: '该邮箱已被绑定' });
@@ -20,7 +21,7 @@ router.post('/send-register-code', async (req: Request, res: Response) => {
     const sent = await sendEmailCode(email, code, '注册验证');
     return res.json({ sent, code: sent ? undefined : code });
   } catch (err: any) {
-    console.error('[Auth] send-register-code error:', err.message || err);
+    console.log('[Auth] send-register-code error:', err.message || String(err));
     return res.status(500).json({ error: '发送失败' });
   }
 });
