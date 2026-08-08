@@ -116,11 +116,11 @@ if (isProduction) {
 const server = http.createServer(app);
 setupWebSocket(server);
 
-function startServer(retries = 3) {
+function startServer(retries = 8) {
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE' && retries > 0) {
-      console.log(`[Server] Port ${PORT} in use, retrying in 3s...`);
-      setTimeout(() => startServer(retries - 1), 3000);
+      console.log(`[Server] Port ${PORT} in use, retrying in 5s... (${retries} left)`);
+      setTimeout(() => startServer(retries - 1), 5000);
     } else {
       console.error(`[Server] Failed to bind port ${PORT}:`, err.message);
       process.exit(1);
@@ -133,8 +133,8 @@ function startServer(retries = 3) {
     });
   } catch (err: any) {
     if (err.code === 'EADDRINUSE' && retries > 0) {
-      console.log(`[Server] Port ${PORT} in use, retrying in 3s...`);
-      setTimeout(() => startServer(retries - 1), 3000);
+      console.log(`[Server] Port ${PORT} in use, retrying in 5s... (${retries} left)`);
+      setTimeout(() => startServer(retries - 1), 5000);
     } else {
       throw err;
     }
