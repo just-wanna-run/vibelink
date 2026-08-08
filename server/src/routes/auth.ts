@@ -6,6 +6,13 @@ import { generateToken } from '../middleware/auth';
 
 const router = Router();
 
+// Helper: run a query and return first row or null (avoids buggy maybeSingle)
+async function queryOne(query: Promise<any>): Promise<any> {
+  const result = await query;
+  const rows = result?.data || result || [];
+  return rows[0] || null;
+}
+
 // POST /api/auth/send-register-code
 router.post('/send-register-code', async (req: Request, res: Response) => {
   try {
@@ -13,8 +20,8 @@ router.post('/send-register-code', async (req: Request, res: Response) => {
     if (!email) return res.status(400).json({ error: '请输入邮箱' });
     console.log('[Auth] send-register-code called for:', email);
     // Check if email already registered
-    const { data: exist } = await getDb().from('users').select('id').eq('recovery_email', email).maybeSingle();
-    if (exist) return res.status(400).json({ error: '该邮箱已被绑定' });
+    const emailExist = await queryOne(getDb().from('users').select('id').eq('recovery_email', email));
+    if (emailExist) return res.status(400).json({ error: '该邮箱已被绑定' });
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
     codeStore.set(`reg_${email}`, { code, expires: Date.now() + 5 * 60 * 1000 });
@@ -47,7 +54,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const db = getDb();
 
     // Check if username exists
-    const { data: exist } = await db.from('users').select('id').eq('username', username).maybeSingle();
+    const exist = await queryOne(db.from('users').select('id').eq('username', username));
     if (exist) return res.status(400).json({ error: '该用户名已存在' });
 
     const userId = uuidv4();
@@ -87,7 +94,7 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!password) return res.status(400).json({ error: '请输入密码' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('*').eq('username', username));
     if (!user) return res.status(400).json({ error: '账号不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
@@ -125,10 +132,9 @@ router.post('/verify-token', async (req: Request, res: Response) => {
     if (!token) return res.status(400).json({ error: '缺少 token' });
 
     const db = getDb();
-    const { data: session } = await db.from('sessions')
+    const session = await queryOne(db.from('sessions')
       .select('*, users(username, recovery_email, public_key, encrypted_private_key)')
-      .eq('token', token)
-      .maybeSingle() as any;
+      .eq('token', token));
 
     if (!session || new Date(session.expires_at) < new Date()) {
       return res.status(401).json({ error: '登录已过期' });
@@ -167,7 +173,7 @@ router.post('/send-reset-code', async (req: Request, res: Response) => {
     if (!username) return res.status(400).json({ error: '请输入用户名' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('id,recovery_email').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('id,recovery_email').eq('username', username));
     if (!user) return res.status(400).json({ error: '该账号不存在' });
     if (!user.recovery_email) return res.status(400).json({ error: '该账号未绑定邮箱，无法找回密码' });
 
@@ -187,7 +193,7 @@ router.post('/delete-account', async (req: Request, res: Response) => {
     if (!username || !password) return res.status(400).json({ error: '缺少参数' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('*').eq('username', username));
     if (!user) return res.status(400).json({ error: '用户不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
@@ -213,14 +219,14 @@ router.post('/change-username', async (req: Request, res: Response) => {
     if (newUsername.length < 2) return res.status(400).json({ error: '新用户名至少2个字符' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('*').eq('username', username));
     if (!user) return res.status(400).json({ error: '用户不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ error: '密码错误' });
 
     // Check if new username is taken
-    const { data: exist } = await db.from('users').select('id').eq('username', newUsername).maybeSingle();
+    const exist = await queryOne(db.from('users').select('id').eq('username', newUsername));
     if (exist) return res.status(400).json({ error: '该用户名已存在' });
 
     await db.from('users').update({ username: newUsername }).eq('username', username);
@@ -237,14 +243,14 @@ router.post('/send-change-email-code', async (req: Request, res: Response) => {
     if (!username || !password || !newEmail) return res.status(400).json({ error: '缺少参数' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('*').eq('username', username));
     if (!user) return res.status(400).json({ error: '用户不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ error: '密码错误' });
 
     // Check if new email is already used by someone else
-    const { data: exist } = await db.from('users').select('id').eq('recovery_email', newEmail).maybeSingle();
+    const exist = await queryOne(db.from('users').select('id').eq('recovery_email', newEmail));
     if (exist) return res.status(400).json({ error: '该邮箱已被其他账号绑定' });
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -263,7 +269,7 @@ router.post('/change-email', async (req: Request, res: Response) => {
     if (!username || !password || !newEmail || !code) return res.status(400).json({ error: '缺少参数' });
 
     const db = getDb();
-    const { data: user } = await db.from('users').select('*').eq('username', username).maybeSingle() as any;
+    const user = await queryOne(db.from('users').select('*').eq('username', username));
     if (!user) return res.status(400).json({ error: '用户不存在' });
 
     const isValid = await bcrypt.compare(password, user.password_hash);
