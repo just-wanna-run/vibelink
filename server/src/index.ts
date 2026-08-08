@@ -116,14 +116,29 @@ if (isProduction) {
 const server = http.createServer(app);
 setupWebSocket(server);
 
-server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[Server] Port ${PORT} is already in use.`);
-    process.exit(1);
-  }
-  throw err;
-});
+function startServer(retries = 3) {
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE' && retries > 0) {
+      console.log(`[Server] Port ${PORT} in use, retrying in 3s...`);
+      setTimeout(() => startServer(retries - 1), 3000);
+    } else {
+      console.error(`[Server] Failed to bind port ${PORT}:`, err.message);
+      process.exit(1);
+    }
+  });
 
-server.listen(PORT, () => {
-  console.log(`[Server] VibeLink server running on http://localhost:${PORT}`);
-});
+  try {
+    server.listen(PORT, () => {
+      console.log(`[Server] VibeLink server running on http://localhost:${PORT}`);
+    });
+  } catch (err: any) {
+    if (err.code === 'EADDRINUSE' && retries > 0) {
+      console.log(`[Server] Port ${PORT} in use, retrying in 3s...`);
+      setTimeout(() => startServer(retries - 1), 3000);
+    } else {
+      throw err;
+    }
+  }
+}
+
+startServer();
