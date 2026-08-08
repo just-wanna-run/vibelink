@@ -10,8 +10,13 @@ function getTransporter() {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
+  console.log('[Email] Env check:', {
+    SMTP_HOST: smtpHost, SMTP_PORT: smtpPort,
+    SMTP_USER: smtpUser ? smtpUser.substring(0, 3) + '...' : 'MISSING',
+    SMTP_PASS: smtpPass ? 'SET' : 'MISSING',
+  });
   if (!smtpHost || !smtpUser || !smtpPass) {
-    console.log('[Email] SMTP not configured, codes will be logged to console only');
+    console.log('[Email] SMTP not configured');
     return null;
   }
 
