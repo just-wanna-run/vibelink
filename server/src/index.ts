@@ -51,30 +51,43 @@ app.get('/api/admin/stats', async (req, res) => {
     if (pwd !== atob('NTUxMzE0')) return res.status(403).json({ error: '无权限' });
 
     const db = getDb();
-    const [usersResult, msgsResult]: any = await Promise.all([
-      db.from('users').select('id'),
-      db.from('messages').select('id'),
-    ]);
-
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-    const [todayResult, weekResult]: any = await Promise.all([
+    const [usersR, msgsR, txtR, imgR, fileR, todayUserR, weekMsgR]: any = await Promise.all([
+      db.from('users').select('id'),
+      db.from('messages').select('id,type,created_at'),
+      db.from('messages').select('id').eq('type', 'text'),
+      db.from('messages').select('id').eq('type', 'image'),
+      db.from('messages').select('id').eq('type', 'file'),
       db.from('messages').select('id').gt('created_at', today),
       db.from('messages').select('id').gt('created_at', weekAgo),
     ]);
 
-    const users = usersResult?.data || usersResult || [];
-    const messages = msgsResult?.data || msgsResult || [];
-    const todayMsgs = todayResult?.data || todayResult || [];
-    const weekMsgs = weekResult?.data || weekResult || [];
+    const users = usersR?.data || usersR || [];
+    const allMsgs = msgsR?.data || msgsR || [];
+    const texts = txtR?.data || txtR || [];
+    const images = imgR?.data || imgR || [];
+    const files = fileR?.data || fileR || [];
+    const todayMsgs = todayUserR?.data || todayUserR || [];
+    const weekMsgs = weekMsgR?.data || weekMsgR || [];
+
+    // Count active users (users who sent messages today)
+    const msgsWithUser = allMsgs.filter((m: any) => m.user_id);
+    const userIds = new Set(msgsWithUser.map((m: any) => m.user_id));
+    const todayUserIds = new Set(msgsWithUser.filter((m: any) => m.created_at >= today).map((m: any) => m.user_id));
 
     res.json({
       totalUsers: users.length,
-      totalMessages: messages.length,
+      totalMessages: allMsgs.length,
+      textMessages: texts.length,
+      imageMessages: images.length,
+      fileMessages: files.length,
       todayMessages: todayMsgs.length,
       weekMessages: weekMsgs.length,
+      activeUsers: userIds.size,
+      todayActiveUsers: todayUserIds.size,
     });
   } catch (err) {
     res.status(500).json({ error: '获取失败' });

@@ -297,6 +297,15 @@ function DeleteAccountButton() {
   );
 }
 
+function StatCard({ v, label }: { v: number; label: string }) {
+  return (
+    <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--primary)' }}>{v ?? '-'}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{label}</div>
+    </div>
+  );
+}
+
 function AdminSection() {
   const [expanded, setExpanded] = useState(false);
   const [pwd, setPwd] = useState('');
@@ -333,22 +342,24 @@ function AdminSection() {
           </div>
           {err && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{err}</p>}
           {stats && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.totalUsers}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>注册用户</div>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>用户</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+                <StatCard v={stats.totalUsers} label="注册用户" />
+                <StatCard v={stats.activeUsers} label="活跃用户" />
+                <StatCard v={stats.todayActiveUsers} label="今日活跃" />
               </div>
-              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.totalMessages}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>消息总数</div>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>消息</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+                <StatCard v={stats.totalMessages} label="消息总数" />
+                <StatCard v={stats.todayMessages} label="今日消息" />
+                <StatCard v={stats.weekMessages} label="近7天" />
               </div>
-              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.todayMessages}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>今日消息</div>
-              </div>
-              <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)' }}>{stats.weekMessages}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>近7天消息</div>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>类型分布</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                <StatCard v={stats.textMessages} label="文字" />
+                <StatCard v={stats.imageMessages} label="图片" />
+                <StatCard v={stats.fileMessages} label="文件" />
               </div>
             </div>
           )}
