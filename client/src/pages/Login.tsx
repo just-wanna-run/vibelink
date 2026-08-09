@@ -49,8 +49,8 @@ export default function Login() {
     if (countdown > 0) return;
     setError('');
     try {
-      const { data } = await api.post('/auth/send-reset-code', { username: username.trim() });
-      if (!data.sent && data.code) { setSentCode(data.code); }
+      const res = await api.post('/auth/send-reset-code', { username: username.trim() });
+      if (res.data && res.data.code) { setSentCode(res.data.code); }
       setCountdown(60);
     } catch (err: any) { setError(err.response?.data?.error || '发送失败'); }
   };
@@ -75,10 +75,11 @@ export default function Login() {
     if (emailCountdown > 0) return;
     setError('');
     try {
-      const { data } = await api.post('/auth/send-register-code', { email: recoveryEmail.trim() });
-      if (!data.sent && data.code) { setSentCode(data.code); }
+      const res = await api.post('/auth/send-register-code', { email: recoveryEmail.trim() });
+      const d = res.data;
+      if (d && d.code) { setEmailCode(d.code); setSentCode(d.code); }
       setEmailCountdown(60);
-    } catch (err: any) { setError(err.response?.data?.error || '发送失败'); }
+    } catch (err: any) { setError('发送失败，请重试'); }
   };
 
   // ---- Login / Register ----
