@@ -90,7 +90,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
             <div
               style={{
                 position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 zIndex: 9999,
               }}
               onClick={() => setPreviewOpen(false)}
@@ -98,39 +98,9 @@ export default function MessageBubble({ message, onDelete }: Props) {
               <img
                 src={content}
                 alt="图片"
-                style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }}
-                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
+                onClick={(e) => { e.stopPropagation(); setPreviewOpen(false); }}
               />
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const blob = await (await fetch(content!)).blob();
-                    const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                      await navigator.share({ files: [file] });
-                    } else {
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
-                      document.body.appendChild(a); a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }
-                  } catch {}
-                }}
-                style={{
-                  marginTop: 16, padding: '10px 24px', background: '#fff', color: '#333',
-                  borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none',
-                }}
-              >保存图片</button>
-              <button
-                onClick={() => setPreviewOpen(false)}
-                style={{
-                  marginTop: 8, padding: '8px 20px', background: 'transparent', color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, fontSize: 13, cursor: 'pointer',
-                }}
-              >关闭</button>
             </div>
           )}
         </div>
