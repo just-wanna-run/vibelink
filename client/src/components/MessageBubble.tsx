@@ -93,12 +93,13 @@ export default function MessageBubble({ message, onDelete }: Props) {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 zIndex: 9999,
               }}
+              onClick={() => setPreviewOpen(false)}
             >
               <img
                 src={content}
                 alt="图片"
-                style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8, cursor: 'pointer' }}
-                onClick={() => setPreviewOpen(false)}
+                style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }}
+                onClick={(e) => e.stopPropagation()}
               />
               <button
                 onClick={async (e) => {
