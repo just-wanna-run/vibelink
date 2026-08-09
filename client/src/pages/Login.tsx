@@ -49,7 +49,7 @@ export default function Login() {
     setError('');
     try {
       const { data } = await api.post('/auth/send-reset-code', { username: username.trim() });
-      if (!data.sent && data.code) { alert(`验证码：${data.code}`); navigator.clipboard?.writeText(data.code); }
+      if (!data.sent && data.code) { alert(`验证码：${data.code}`); }
       setCountdown(60);
     } catch (err: any) { setError(err.response?.data?.error || '发送失败'); }
   };
@@ -75,7 +75,7 @@ export default function Login() {
     setError('');
     try {
       const { data } = await api.post('/auth/send-register-code', { email: recoveryEmail.trim() });
-      if (!data.sent && data.code) { alert(`验证码：${data.code}`); navigator.clipboard?.writeText(data.code); }
+      if (!data.sent && data.code) { alert(`验证码：${data.code}`); }
       setEmailCountdown(60);
     } catch (err: any) { setError(err.response?.data?.error || '发送失败'); }
   };
