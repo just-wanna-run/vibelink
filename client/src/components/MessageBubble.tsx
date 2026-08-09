@@ -87,34 +87,37 @@ export default function MessageBubble({ message, onDelete }: Props) {
             loading="lazy"
             onClick={() => setPreviewOpen(true)}
           />
-          {isMobile && (
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                try {
-                  const blob = await (await fetch(content!)).blob();
-                  const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
-                  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file] });
-                  } else {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
-                    document.body.appendChild(a); a.click();
-                    document.body.removeChild(a); URL.revokeObjectURL(url);
-                  }
-                } catch {}
-              }}
-              title="保存到相册"
-              style={{
-                position: 'absolute', bottom: 6, right: 6,
-                width: 28, height: 28, borderRadius: '50%',
-                background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 14,
-              }}
-            >↓</button>
-          )}
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const blob = await (await fetch(content!)).blob();
+                if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], `image.jpg`, { type: blob.type })] })) {
+                  await navigator.share({ files: [new File([blob], `image.jpg`, { type: blob.type })] });
+                } else {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
+                  document.body.appendChild(a); a.click();
+                  document.body.removeChild(a); URL.revokeObjectURL(url);
+                }
+              } catch {}
+            }}
+            title={isMobile ? '保存到相册' : '下载'}
+            style={{
+              position: 'absolute', bottom: 6, right: 6,
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontSize: isMobile ? 14 : 12,
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </button>
           {previewOpen && (
             <div
               style={{
