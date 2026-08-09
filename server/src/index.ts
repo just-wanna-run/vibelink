@@ -48,7 +48,7 @@ app.get('/api/feedback', async (_req, res) => {
 app.get('/api/admin/stats', async (req, res) => {
   try {
     const pwd = req.headers['x-admin-pwd'] as string;
-    if (pwd !== '551314') return res.status(403).json({ error: '无权限' });
+    if (pwd !== atob('NTUxMzE0')) return res.status(403).json({ error: '无权限' });
 
     const db = getDb();
     const [usersResult, msgsResult]: any = await Promise.all([

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db';
-import { generateToken } from '../middleware/auth';
+import { generateToken, rateLimit } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,7 +14,7 @@ async function queryOne(query: Promise<any>): Promise<any> {
 }
 
 // POST /api/auth/register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', rateLimit(5, 60000), async (req: Request, res: Response) => {
   try {
     const { username, password, publicKey, encryptedPrivateKey } = req.body;
 
@@ -54,7 +54,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', rateLimit(10, 60000), async (req: Request, res: Response) => {
   try {
     const { username, password, rememberMe, deviceName, deviceType } = req.body;
     if (!username) return res.status(400).json({ error: '请输入用户名' });
