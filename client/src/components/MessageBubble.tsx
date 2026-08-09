@@ -106,7 +106,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
       ) : (
         <div className="message-bubble message-sent">
         {type === 'text' && (
-          <span>{content}</span>
+          <span style={{ whiteSpace: 'pre-wrap' }}>{content}</span>
         )}
 
         {(type === 'file') && (
