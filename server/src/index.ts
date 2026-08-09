@@ -106,6 +106,41 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// ---- Auto cleanup: delete files >100MB older than 3 months ----
+const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads');
+
+async function cleanupOldLargeFiles() {
+  try {
+    const db = getDb();
+    const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const result = await db.from('messages')
+      .select('id,user_id,file_path,file_size')
+      .eq('type', 'file')
+      .lt('created_at', cutoff);
+    const msgs = (result?.data || result || []) as any[];
+    let deleted = 0;
+    for (const msg of msgs) {
+      const size = msg.file_size || 0;
+      if (size > 100 * 1024 * 1024) {
+        if (msg.file_path) {
+          const fp = path.join(UPLOAD_DIR, msg.file_path);
+          if (fs.existsSync(fp)) { fs.unlinkSync(fp); }
+        }
+        await db.from('messages').delete().eq('id', msg.id);
+        await db.from('deletions').insert({ user_id: msg.user_id, message_id: msg.id });
+        deleted++;
+      }
+    }
+    if (deleted > 0) console.log(`[Cleanup] Deleted ${deleted} old files (>100MB, >3mo)`);
+  } catch (err: any) {
+    console.error('[Cleanup] Error:', err.message);
+  }
+}
+
+// Run cleanup on startup and every 24h
+cleanupOldLargeFiles();
+setInterval(cleanupOldLargeFiles, 24 * 60 * 60 * 1000);
+
 // ---- Serve frontend static files in production ----
 if (isProduction) {
   const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
