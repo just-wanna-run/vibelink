@@ -90,16 +90,33 @@ export default function MessageBubble({ message, onDelete }: Props) {
             <div
               style={{
                 position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                zIndex: 9999, cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                zIndex: 9999,
               }}
-              onClick={() => setPreviewOpen(false)}
             >
               <img
                 src={content}
                 alt="图片"
-                style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
+                style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8, cursor: 'pointer' }}
+                onClick={() => setPreviewOpen(false)}
               />
+              <a
+                href={content!}
+                download={`vibelink_image_${Date.now()}.jpg`}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  marginTop: 16, padding: '10px 24px', background: '#fff', color: '#333',
+                  borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none',
+                  cursor: 'pointer', border: 'none',
+                }}
+              >下载图片</a>
+              <button
+                onClick={() => setPreviewOpen(false)}
+                style={{
+                  marginTop: 8, padding: '8px 20px', background: 'transparent', color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, fontSize: 13, cursor: 'pointer',
+                }}
+              >关闭</button>
             </div>
           )}
         </div>
