@@ -44,7 +44,6 @@ export default function Settings() {
                 <span>{user?.username || '未登录'}<ChangeUsernameButton /></span>
                 <DeleteAccountButton />
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>用户名和密码是唯一凭证，遗失无法找回</div>
             </div>
           </div>
         </div>
