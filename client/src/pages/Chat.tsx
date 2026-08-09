@@ -64,6 +64,7 @@ export default function Chat() {
   };
 
   const handleBatchDownload = async () => {
+    if (downloadProgress) return; // prevent double trigger
     const selectedMsgs = messages.filter((m) => selected.has(m.id));
     const downloadable = selectedMsgs.filter((m) =>
       (m.type === 'image' && m.content) || (m.type === 'file' && m.file_path)
