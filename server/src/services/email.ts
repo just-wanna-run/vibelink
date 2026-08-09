@@ -5,10 +5,10 @@ let transporter: nodemailer.Transporter | null = null;
 function getTransporter() {
   if (transporter) return transporter;
 
-  const smtpHost = process.env.SMTP_HOST || 'smtp.qq.com';
+  const smtpHost = process.env.SMTP_HOST || 'smtp.163.com';
   const smtpPort = parseInt(process.env.SMTP_PORT || '465');
-  const smtpUser = process.env.SMTP_USER || atob('ODg1MzA0MTIwQHFxLmNvbQ==');
-  const smtpPass = process.env.SMTP_PASS || atob('Y3hpcXhqY3Z5YWxpYmZjYQ==');
+  const smtpUser = process.env.SMTP_USER || atob('MTUzNzIwNzYxMDZAMTYzLmNvbQ==');
+  const smtpPass = process.env.SMTP_PASS || atob('S0dVeWZadUxpUVh2TWpndA==');
 
   if (!smtpUser || !smtpPass) {
     console.log('[Email] SMTP not configured');
