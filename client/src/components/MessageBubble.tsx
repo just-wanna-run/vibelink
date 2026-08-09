@@ -35,10 +35,11 @@ function formatSize(bytes: number): string {
 }
 
 export default function MessageBubble({ message, onDelete }: Props) {
-  const { type, content, file_name, file_size, file_path, pending } = message;
+  const { type, content, file_name, file_size, file_type, file_path, pending } = message;
   const [downloading, setDownloading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const isMobile = /Mobile|Android|iPhone/i.test(navigator.userAgent);
 
   const handleCopy = async () => {
     if (!content) return;
@@ -86,32 +87,34 @@ export default function MessageBubble({ message, onDelete }: Props) {
             loading="lazy"
             onClick={() => setPreviewOpen(true)}
           />
-          <button
-            onClick={async (e) => {
-              e.stopPropagation();
-              try {
-                const blob = await (await fetch(content!)).blob();
-                const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                  await navigator.share({ files: [file] });
-                } else {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
-                  document.body.appendChild(a); a.click();
-                  document.body.removeChild(a); URL.revokeObjectURL(url);
-                }
-              } catch {}
-            }}
-            title="保存到相册"
-            style={{
-              position: 'absolute', bottom: 6, right: 6,
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 14,
-            }}
-          >↓</button>
+          {isMobile && (
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const blob = await (await fetch(content!)).blob();
+                  const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
+                  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file] });
+                  } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
+                    document.body.appendChild(a); a.click();
+                    document.body.removeChild(a); URL.revokeObjectURL(url);
+                  }
+                } catch {}
+              }}
+              title="保存到相册"
+              style={{
+                position: 'absolute', bottom: 6, right: 6,
+                width: 28, height: 28, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 14,
+              }}
+            >↓</button>
+          )}
           {previewOpen && (
             <div
               style={{
@@ -154,12 +157,10 @@ export default function MessageBubble({ message, onDelete }: Props) {
                 {file_name || '文件'}
               </div>
               {file_size && (
-                <div style={{ fontSize: 12, opacity: 0.8 }}>
+                <div style={{ fontSize: 12, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 8 }}>
                   {formatSize(file_size)}
                   {file_path && (
-                    <span style={{ marginLeft: 6 }}>
-                      {downloading ? '⏳ 下载中...' : '📥 点击下载'}
-                    </span>
+                    <span>{downloading ? '⏳ 下载中...' : '📥 点击下载'}</span>
                   )}
                 </div>
               )}
