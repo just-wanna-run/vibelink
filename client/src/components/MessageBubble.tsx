@@ -78,7 +78,7 @@ export default function MessageBubble({ message, onDelete }: Props) {
       marginBottom: 12,
     }}>
       {type === 'image' && content ? (
-        <div className="img-bubble">
+        <div className="img-bubble" style={{ position: 'relative' }}>
           <img
             src={content}
             alt="图片"
@@ -86,6 +86,32 @@ export default function MessageBubble({ message, onDelete }: Props) {
             loading="lazy"
             onClick={() => setPreviewOpen(true)}
           />
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const blob = await (await fetch(content!)).blob();
+                const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                  await navigator.share({ files: [file] });
+                } else {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
+                  document.body.appendChild(a); a.click();
+                  document.body.removeChild(a); URL.revokeObjectURL(url);
+                }
+              } catch {}
+            }}
+            title="保存到相册"
+            style={{
+              position: 'absolute', bottom: 6, right: 6,
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontSize: 14,
+            }}
+          >↓</button>
           {previewOpen && (
             <div
               style={{
