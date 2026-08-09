@@ -61,7 +61,7 @@ export default function Login() {
 
             {mode === 'register' && (
               <div style={{ background: '#FFF8E1', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#8D6E00', lineHeight: 1.6 }}>
-                ⚠️ 请记牢用户名和密码，丢失后无法找回
+                ⚠️ 用户名和密码是唯一凭证，遗失无法找回
               </div>
             )}
 
