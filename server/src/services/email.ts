@@ -20,6 +20,8 @@ function getTransporter() {
     port: smtpPort,
     secure: smtpPort === 465,
     auth: { user: smtpUser, pass: smtpPass },
+    tls: { rejectUnauthorized: false },
+    family: 4, // force IPv4
   });
 
   console.log(`[Email] SMTP ready: ${smtpUser}@${smtpHost}`);
