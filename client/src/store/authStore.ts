@@ -6,7 +6,6 @@ import { setEncryptionKey } from './encryptionStore';
 interface User {
   userId: string;
   username: string;
-  recoveryEmail?: string;
   publicKey?: string;
   encryptedPrivateKey?: string;
 }
@@ -18,7 +17,7 @@ interface AuthState {
   isCheckingToken: boolean;
 
   login: (params: { username: string; password: string; rememberMe?: boolean }) => Promise<void>;
-  register: (params: { username: string; password: string; recoveryEmail: string; emailCode: string }) => Promise<void>;
+  register: (params: { username: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   checkStoredToken: () => Promise<boolean>;
 }
@@ -32,17 +31,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async ({ username, password, rememberMe }) => {
     set({ isLoading: true });
     try {
-      if (rememberMe) {
-        localStorage.setItem('vibelink_saved_username', username);
-      }
+      if (rememberMe) localStorage.setItem('vibelink_saved_username', username);
 
       const deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
       const deviceName = deviceType === 'mobile' ? '手机' : '电脑';
 
       const { data } = await api.post('/auth/login', {
-        username, password,
-        rememberMe: !!rememberMe,
-        deviceName, deviceType,
+        username, password, rememberMe: !!rememberMe, deviceName, deviceType,
       });
 
       if (data.encryptedPrivateKey) {
@@ -58,23 +53,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const newEncrypted = await encryptKeyWithPassword(newKey, password);
             api.post('/auth/register', { username, password, encryptedPrivateKey: newEncrypted }).catch(() => {});
             if (rememberMe) storeKeyLocally(newKey);
-          } catch (cryptoErr) {
-            console.warn('Crypto unavailable, proceeding without E2E:', cryptoErr);
-          }
+          } catch { console.warn('Crypto unavailable'); }
         }
       }
 
       setStoredToken(data.token, !!rememberMe);
       set({
-        user: {
-          userId: data.userId,
-          username: data.username,
-          recoveryEmail: data.recoveryEmail,
-          publicKey: data.publicKey,
-          encryptedPrivateKey: data.encryptedPrivateKey,
-        },
-        token: data.token,
-        isLoading: false,
+        user: { userId: data.userId, username: data.username, publicKey: data.publicKey, encryptedPrivateKey: data.encryptedPrivateKey },
+        token: data.token, isLoading: false,
       });
     } catch (err: any) {
       set({ isLoading: false });
@@ -82,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async ({ username, password, recoveryEmail, emailCode }) => {
+  register: async ({ username, password }) => {
     set({ isLoading: true });
     try {
       const deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
@@ -91,30 +77,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       let encryptedKey: string | undefined;
       try {
         const aesKey = await generateAesKey();
-        setEncryptionKey(aesKey);
-        storeKeyLocally(aesKey);
+        setEncryptionKey(aesKey); storeKeyLocally(aesKey);
         encryptedKey = await encryptKeyWithPassword(aesKey, password);
-      } catch (cryptoErr) {
-        console.warn('Encryption setup failed, proceeding without E2E:', cryptoErr);
-      }
+      } catch { console.warn('Encryption setup failed'); }
 
       const { data } = await api.post('/auth/register', {
-        username, password,
-        recoveryEmail,
-        emailCode,
-        deviceName, deviceType,
+        username, password, deviceName, deviceType,
         encryptedPrivateKey: encryptedKey || undefined,
       });
 
       localStorage.setItem('vibelink_saved_username', username);
       localStorage.setItem('vibelink_saved_password', password);
-
       setStoredToken(data.token, true);
-      set({
-        user: { userId: data.userId, username: data.username, recoveryEmail: data.recoveryEmail },
-        token: data.token,
-        isLoading: false,
-      });
+      set({ user: { userId: data.userId, username: data.username }, token: data.token, isLoading: false });
     } catch (err: any) {
       set({ isLoading: false });
       throw new Error(err.response?.data?.error || '注册失败');
@@ -123,12 +98,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     const token = get().token || getStoredToken();
-    try {
-      if (token) await api.post('/auth/logout', { token });
-    } catch {}
-    clearStoredToken();
-    clearLocalKey();
-    setEncryptionKey(null);
+    try { if (token) await api.post('/auth/logout', { token }); } catch {}
+    clearStoredToken(); clearLocalKey(); setEncryptionKey(null);
     set({ user: null, token: null });
   },
 
@@ -139,32 +110,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!token) { set({ isCheckingToken: false }); return false; }
 
       const { data } = await api.post('/auth/verify-token', { token });
-
-      try {
-        const localKey = await loadKeyLocally();
-        if (localKey) setEncryptionKey(localKey);
-      } catch {}
+      try { const localKey = await loadKeyLocally(); if (localKey) setEncryptionKey(localKey); } catch {}
 
       setStoredToken(data.token, true);
-      set({
-        user: {
-          userId: data.userId,
-          username: data.username,
-          recoveryEmail: data.recoveryEmail,
-          publicKey: data.publicKey,
-          encryptedPrivateKey: data.encryptedPrivateKey,
-        },
-        token: data.token,
-        isCheckingToken: false,
-      });
+      set({ user: { userId: data.userId, username: data.username, publicKey: data.publicKey, encryptedPrivateKey: data.encryptedPrivateKey }, token: data.token, isCheckingToken: false });
       return true;
     } catch (err: any) {
-      if (err?.response?.status === 401) {
-        clearStoredToken();
-        set({ isCheckingToken: false, user: null, token: null });
-      } else {
-        set({ isCheckingToken: false });
-      }
+      if (err?.response?.status === 401) { clearStoredToken(); set({ isCheckingToken: false, user: null, token: null }); }
+      else { set({ isCheckingToken: false }); }
       return false;
     }
   },

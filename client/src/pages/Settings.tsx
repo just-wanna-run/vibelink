@@ -35,7 +35,7 @@ export default function Settings() {
         {/* Account info */}
         <div className="card" style={{ marginBottom: 20 }}>
           <h2 className="section-title">账号信息</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #5B9BD5, #4A8AC4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: 18, fontWeight: 700 }}>
               {(user?.username || '?')[0].toUpperCase()}
             </div>
@@ -44,10 +44,7 @@ export default function Settings() {
                 <span>{user?.username || '未登录'}<ChangeUsernameButton /></span>
                 <DeleteAccountButton />
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
-                {user?.recoveryEmail || '未绑定邮箱'}
-                <ChangeEmailButton />
-              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>请记牢用户名和密码，丢失后无法找回</div>
             </div>
           </div>
         </div>
@@ -390,65 +387,6 @@ function ChangeUsernameButton() {
         <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '4px 6px', fontSize: 11, marginLeft: 4, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
         {msg && <span style={{ fontSize: 11, marginLeft: 4, color: msg.includes('更新') ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
       </span>
-    );
-  }
-  return <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 8, fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, padding: 0 }}>修改</button></span>;
-}
-
-function ChangeEmailButton() {
-  const { user } = useAuthStore();
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [pwd, setPwd] = useState('');
-  const [code, setCode] = useState('');
-  const [countdown, setCountdown] = useState(0);
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    if (countdown > 0) {
-      const t = setInterval(() => setCountdown((c) => (c <= 1 ? 0 : c - 1)), 1000);
-      return () => clearInterval(t);
-    }
-  }, [countdown]);
-
-  const handleSendCode = async () => {
-    if (!email.trim()) { setMsg('请输入新邮箱'); return; }
-    if (!pwd) { setMsg('请输入密码'); return; }
-    if (countdown > 0) return;
-    setMsg('');
-    try {
-      const { data } = await api.post('/auth/send-change-email-code', { username: user?.username, password: pwd, newEmail: email.trim() });
-      if (!data.sent && data.code) { alert(`验证码：${data.code}\n（已自动复制到剪贴板）`); navigator.clipboard?.writeText(data.code); }
-      setCountdown(60);
-    } catch (e: any) { setMsg(e.response?.data?.error || '发送失败'); }
-  };
-
-  const handleSave = async () => {
-    if (!code.trim()) { setMsg('请输入验证码'); return; }
-    try {
-      await api.post('/auth/change-email', { username: user?.username, password: pwd, newEmail: email.trim(), code: code.trim() });
-      setMsg('邮箱已更新'); setOpen(false);
-      window.location.reload();
-    } catch (e: any) { setMsg(e.response?.data?.error || '更新失败'); }
-  };
-
-  if (open) {
-    return (
-      <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input type="email" placeholder="新邮箱" value={email} onChange={(e) => setEmail(e.target.value)}
-          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 150 }} />
-        <input type="password" placeholder="密码" value={pwd} onChange={(e) => setPwd(e.target.value)}
-          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 80 }} />
-        <button onClick={handleSendCode} disabled={countdown > 0}
-          style={{ padding: '4px 10px', fontSize: 11, border: '1.5px solid var(--primary)', borderRadius: 6, cursor: countdown > 0 ? 'default' : 'pointer', background: countdown > 0 ? 'var(--border)' : 'var(--white)', color: countdown > 0 ? 'var(--text-secondary)' : 'var(--primary)', whiteSpace: 'nowrap' }}>
-          {countdown > 0 ? `${countdown}s` : '发验证码'}
-        </button>
-        <input type="text" placeholder="验证码" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6}
-          style={{ padding: '4px 8px', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 12, width: 70 }} />
-        <button onClick={handleSave} style={{ padding: '4px 10px', fontSize: 11, border: 'none', borderRadius: 6, background: 'var(--primary)', color: '#fff', cursor: 'pointer' }}>保存</button>
-        <button onClick={() => { setOpen(false); setMsg(''); }} style={{ padding: '4px 6px', fontSize: 11, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>取消</button>
-        {msg && <span style={{ fontSize: 11, color: msg.includes('更新') ? 'var(--success)' : 'var(--danger)' }}>{msg}</span>}
-      </div>
     );
   }
   return <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 8, fontWeight: 400 }}>· <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, padding: 0 }}>修改</button></span>;
