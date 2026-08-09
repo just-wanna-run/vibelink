@@ -100,16 +100,29 @@ export default function MessageBubble({ message, onDelete }: Props) {
                 style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8, cursor: 'pointer' }}
                 onClick={() => setPreviewOpen(false)}
               />
-              <a
-                href={content!}
-                download={`vibelink_image_${Date.now()}.jpg`}
-                onClick={(e) => e.stopPropagation()}
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const blob = await (await fetch(content!)).blob();
+                    const file = new File([blob], `vibelink_${Date.now()}.jpg`, { type: blob.type });
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                      await navigator.share({ files: [file] });
+                    } else {
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url; a.download = `vibelink_${Date.now()}.jpg`;
+                      document.body.appendChild(a); a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }
+                  } catch {}
+                }}
                 style={{
                   marginTop: 16, padding: '10px 24px', background: '#fff', color: '#333',
-                  borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none',
-                  cursor: 'pointer', border: 'none',
+                  borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none',
                 }}
-              >下载图片</a>
+              >保存图片</button>
               <button
                 onClick={() => setPreviewOpen(false)}
                 style={{
