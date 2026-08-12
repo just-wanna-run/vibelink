@@ -23,7 +23,7 @@ router.post('/send', authMiddleware, upload.single('file'), async (req: AuthRequ
   try {
     const userId = req.userId!;
     const sessionId = req.sessionId!;
-    const { type, content, iv, encryptedKey, clientMessageId } = req.body;
+    const { type, content, iv, encryptedKey, clientMessageId, categoryId } = req.body;
 
     if (!type || !clientMessageId) return res.status(400).json({ error: '缺少必要参数' });
 
@@ -46,6 +46,7 @@ router.post('/send', authMiddleware, upload.single('file'), async (req: AuthRequ
       content: content || null, file_name: fileName, file_size: fileSize,
       file_type: fileType, file_path: filePath, encrypted_key: encryptedKey || null,
       iv: iv || null, client_message_id: clientMessageId,
+      category_id: categoryId || null,
     });
 
     const { data: message } = await db.from('messages').select('*').eq('id', messageId).single();

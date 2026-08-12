@@ -44,6 +44,59 @@ app.get('/api/feedback', async (_req, res) => {
   } catch (err) { res.status(500).json({ error: '获取失败' }); }
 });
 
+// ---- Categories ----
+app.get('/api/categories', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: '请先登录' });
+    const jwt = require('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || atob('dmljZWxpbmstYXBwLWp3dC1wcm9kLTljZi02ZmZkLTU1NGYtYTJjMg==');
+    let payload: any;
+    try { payload = jwt.verify(token, JWT_SECRET); } catch { return res.status(401).json({ error: '登录已过期' }); }
+    const userId = payload.userId;
+
+    const result = await getDb().from('categories').select('*').eq('user_id', userId).order('created_at');
+    const cats = (result?.data || result || []);
+    return res.json({ categories: cats });
+  } catch (err) { return res.status(500).json({ error: '获取失败' }); }
+});
+
+app.post('/api/categories', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: '请先登录' });
+    const jwt = require('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || atob('dmljZWxpbmstYXBwLWp3dC1wcm9kLTljZi02ZmZkLTU1NGYtYTJjMg==');
+    let payload: any;
+    try { payload = jwt.verify(token, JWT_SECRET); } catch { return res.status(401).json({ error: '登录已过期' }); }
+    const userId = payload.userId;
+
+    const { name, color } = req.body;
+    if (!name) return res.status(400).json({ error: '请输入分类名称' });
+    await getDb().from('categories').insert({ id: uuidv4(), user_id: userId, name, color: color || '#5B9BD5' });
+    return res.json({ message: '已创建' });
+  } catch (err) { return res.status(500).json({ error: '创建失败' }); }
+});
+
+app.put('/api/categories/:id', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: '请先登录' });
+    const { name, color } = req.body;
+    await getDb().from('categories').update({ name, color }).eq('id', req.params.id);
+    return res.json({ message: '已更新' });
+  } catch (err) { return res.status(500).json({ error: '更新失败' }); }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: '请先登录' });
+    await getDb().from('categories').delete().eq('id', req.params.id);
+    return res.json({ message: '已删除' });
+  } catch (err) { return res.status(500).json({ error: '删除失败' }); }
+});
+
 // ---- Admin stats ----
 app.get('/api/admin/stats', async (req, res) => {
   try {
