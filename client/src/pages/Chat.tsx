@@ -6,6 +6,7 @@ import api from '../services/api';
 import Layout from '../components/Layout';
 import MessageBubble, { formatDateHeader } from '../components/MessageBubble';
 import InputArea from '../components/InputArea';
+import CategoryBar from '../components/CategoryBar';
 
 export default function Chat() {
   const { user } = useAuthStore();
@@ -251,6 +252,7 @@ export default function Chat() {
           type: 'image',
           content: localPreview,
           clientMessageId: clientId,
+          categoryId: useChatStore.getState().selectedCategoryId,
         }, { timeout: 60000 });
         responseData = res.data;
       } else {
@@ -258,6 +260,7 @@ export default function Chat() {
         const fd = new FormData();
         fd.append('type', 'file');
         fd.append('clientMessageId', clientId);
+        fd.append('categoryId', useChatStore.getState().selectedCategoryId || '');
         fd.append('file', file);
         const res = await api.post('/messages/send', fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -320,6 +323,9 @@ export default function Chat() {
             </div>
           </div>
         )}
+
+      {/* Category bar */}
+      <CategoryBar />
 
       {/* Messages */}
       <div

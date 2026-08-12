@@ -41,6 +41,7 @@ interface ChatState {
   isLoadingHistory: boolean;
   hasMore: boolean;
   myDeviceId: string;
+  selectedCategoryId: string | null;
 
   // Actions
   addMessage: (msg: Message) => void;
@@ -48,6 +49,7 @@ interface ChatState {
   loadHistory: () => Promise<void>;
   pollNewMessages: () => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
+  setSelectedCategoryId: (id: string | null) => void;
 }
 
 // Generate a persistent local device identifier
@@ -74,6 +76,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoadingHistory: false,
   hasMore: true,
   myDeviceId: getLocalDeviceId(),
+  selectedCategoryId: null,
+
+  setSelectedCategoryId: (id) => set({ selectedCategoryId: id }),
 
   addMessage: (msg) => {
     set((s) => {
@@ -120,6 +125,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         content: encContent,
         iv: iv || undefined,
         clientMessageId: clientId,
+        categoryId: get().selectedCategoryId,
       });
 
       // Server returns the confirmed message — decrypt before storing
