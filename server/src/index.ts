@@ -87,18 +87,16 @@ app.get('/api/admin/stats', async (req, res) => {
     if (pwd !== atob('NTUxMzE0')) return res.status(403).json({ error: '无权限' });
 
     const db = getDb();
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const now = Date.now();
+    const todayStart = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+    const weekStart = now - 7 * 86400000;
 
-    const [usersR, msgsR, txtR, imgR, fileR, todayUserR, weekMsgR]: any = await Promise.all([
+    const [usersR, msgsR, txtR, imgR, fileR]: any = await Promise.all([
       db.from('users').select('id'),
-      db.from('messages').select('id,type,created_at'),
+      db.from('messages').select('id,user_id,type,created_at'),
       db.from('messages').select('id').eq('type', 'text'),
       db.from('messages').select('id').eq('type', 'image'),
       db.from('messages').select('id').eq('type', 'file'),
-      db.from('messages').select('id').gt('created_at', today),
-      db.from('messages').select('id').gt('created_at', weekAgo),
     ]);
 
     const users = usersR?.data || usersR || [];
@@ -106,13 +104,11 @@ app.get('/api/admin/stats', async (req, res) => {
     const texts = txtR?.data || txtR || [];
     const images = imgR?.data || imgR || [];
     const files = fileR?.data || fileR || [];
-    const todayMsgs = todayUserR?.data || todayUserR || [];
-    const weekMsgs = weekMsgR?.data || weekMsgR || [];
 
-    // Count active users (users who sent messages today)
-    const msgsWithUser = allMsgs.filter((m: any) => m.user_id);
-    const userIds = new Set(msgsWithUser.map((m: any) => m.user_id));
-    const todayUserIds = new Set(msgsWithUser.filter((m: any) => m.created_at >= today).map((m: any) => m.user_id));
+    const todayMsgs = allMsgs.filter((m: any) => new Date(m.created_at).getTime() >= todayStart);
+    const weekMsgs = allMsgs.filter((m: any) => new Date(m.created_at).getTime() >= weekStart);
+    const userIds = new Set(allMsgs.map((m: any) => m.user_id));
+    const todayUserIds = new Set(todayMsgs.map((m: any) => m.user_id));
 
     res.json({
       totalUsers: users.length,
@@ -148,16 +144,16 @@ const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads');
 async function cleanupOldLargeFiles() {
   try {
     const db = getDb();
-    const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
     const result = await db.from('messages')
-      .select('id,user_id,file_path,file_size')
-      .eq('type', 'file')
-      .lt('created_at', cutoff);
+      .select('id,user_id,file_path,file_size,created_at')
+      .eq('type', 'file');
     const msgs = (result?.data || result || []) as any[];
     let deleted = 0;
     for (const msg of msgs) {
+      const created = new Date(msg.created_at).getTime();
       const size = msg.file_size || 0;
-      if (size > 100 * 1024 * 1024) {
+      if (created < cutoff && size > 100 * 1024 * 1024) {
         if (msg.file_path) {
           const fp = path.join(UPLOAD_DIR, msg.file_path);
           if (fs.existsSync(fp)) { fs.unlinkSync(fp); }
